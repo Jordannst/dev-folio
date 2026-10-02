@@ -34,6 +34,18 @@ h1,h2,h3,p { margin:0; }.muted { color:var(--muted); }
 .github-section { margin:64px 0 32px; padding-bottom:40px; }.text-link { display:inline-flex; align-items:center; gap:6px; font-size:13px; min-height:40px; text-decoration:underline; text-underline-offset:4px; }
 .footer { padding:88px 0 0; margin-top:64px; }.footer h2 { font-family:var(--font-inter); font-weight:500; font-size:24px; line-height:32px; }.footer p { font-size:14px; color:var(--muted); margin:4px 0 20px; }.contact-button { border-color:var(--blue); box-shadow:0 0 0 2px #8da7ff30; }.footer-bottom { padding-top:96px; display:flex; flex-direction:column; align-items:flex-end; font-size:11px; color:var(--muted); gap:3px; }
 .leaf { position:absolute; width:170px; pointer-events:none; z-index:-1; }.hero-leaf { top:300px; right:calc(-25vw + 12px); }.footer-leaf { right:0; top:0; width:130px; }
+@media (prefers-reduced-motion:no-preference) {
+  .leaf-blade { transform-origin:126px 44px; opacity:0; }
+  .leaf-stem { stroke-dasharray:1; stroke-dashoffset:1; }
+  .leaf-sway { transform-origin:81px 90px; }
+  .leaf[data-grown=true] .leaf-stem { animation:leaf-stem-grow .65s ease-out both; }
+  .leaf[data-grown=true] .leaf-green { animation:leaf-unfold 1.2s .3s cubic-bezier(.22,1,.36,1) both; }
+  .leaf[data-grown=true] .leaf-blue { animation:leaf-unfold 1.3s .5s cubic-bezier(.22,1,.36,1) both; }
+  .leaf[data-grown=true] .leaf-sway { animation:leaf-sway 7s 1.8s ease-in-out infinite; }
+}
+@keyframes leaf-stem-grow { to { stroke-dashoffset:0; } }
+@keyframes leaf-unfold { from { opacity:0; transform:rotate(-14deg) scale(.04); } to { opacity:1; transform:rotate(0) scale(1); } }
+@keyframes leaf-sway { 0%,100% { transform:rotate(0); } 35% { transform:rotate(1.5deg); } 70% { transform:rotate(-1deg); } }
 .bottom-blur { height:80px; position:fixed; bottom:0; left:0; right:0; z-index:20; pointer-events:none; isolation:isolate; }
 .bottom-blur > div { position:absolute; inset:0; }
 .bottom-blur > div:nth-child(1) { backdrop-filter:blur(4px); mask-image:linear-gradient(transparent 0%,#000 20%,#000 40%,transparent 60%); }

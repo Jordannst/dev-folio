@@ -3,6 +3,7 @@ import type { SVGProps } from "react";
 const paths = {
   arrow: "M7 17 17 7M7 7h10v10",
   back: "M19 12H5m6-6-6 6 6 6",
+  up: "M12 19V5m-6 6 6-6 6 6",
   chevron: "m6 9 6 6 6-6",
   mail: "M4 5h16v14H4z m0 1 8 7 8-7",
   sun: "M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0",

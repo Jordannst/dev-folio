@@ -53,6 +53,15 @@ export function SiteControls() {
     document.addEventListener("portfolio:navigate", navigate);
     return () => document.removeEventListener("portfolio:navigate", navigate);
   }, [pathname, router]);
+  function backToTop() {
+    const replay = () => {
+      if (window.scrollY > 1) return;
+      document.getElementById("home")?.focus({ preventScroll: true });
+      document.dispatchEvent(new Event("portfolio:back-to-top"));
+    };
+    if (lenis.current) lenis.current.scrollTo(0, { duration: 1, onComplete: replay });
+    else { window.scrollTo({ top: 0, behavior: "instant" }); replay(); }
+  }
   function toggleTheme(event: MouseEvent<HTMLButtonElement>) {
     themeTransition.current?.skipTransition();
     const apply = () => {
@@ -72,5 +81,5 @@ export function SiteControls() {
     themeTransition.current = document.startViewTransition(apply);
     void themeTransition.current.ready.catch(() => { /* A newer toggle can skip this animation. */ });
   }
-  return <><div className="bottom-blur" aria-hidden="true"><div /><div /><div /><div /><div /></div><div className="scroll-progress" ref={progress} aria-hidden="true" /><div className="floating-controls"><button onClick={toggleTheme} aria-label={`Switch to ${dark ? "light" : "dark"} theme`} title={`Switch to ${dark ? "light" : "dark"} theme`}><Icon name={dark ? "moon" : "sun"} /></button><a href={`mailto:${portfolio.profile.email}`} aria-label="Email Jordan" title="Email Jordan"><Icon name="mail" /></a></div></>;
+  return <><div className="bottom-blur" aria-hidden="true"><div /><div /><div /><div /><div /></div><div className="scroll-progress" ref={progress} aria-hidden="true" /><div className="floating-controls"><button onClick={backToTop} aria-label="Back to top" title="Back to top"><Icon name="up" /></button><button onClick={toggleTheme} aria-label={`Switch to ${dark ? "light" : "dark"} theme`} title={`Switch to ${dark ? "light" : "dark"} theme`}><Icon name={dark ? "moon" : "sun"} /></button><a href={`mailto:${portfolio.profile.email}`} aria-label="Email Jordan" title="Email Jordan"><Icon name="mail" /></a></div></>;
 }
