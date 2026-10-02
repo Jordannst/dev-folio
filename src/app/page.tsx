@@ -8,10 +8,12 @@ import { Experience } from "@/components/experience";
 import { Projects } from "@/components/projects";
 import { Footer, Leaf, SectionHeading } from "@/components/site-frame";
 import { Icon } from "@/components/icon";
+import { Companion } from "@/components/companion";
 
 const skillIcons = ["javascript", "typescript", "python", "go", "php", "react", "react", "nextjs", "tailwindcss", "nodejs", "express", "laravel", "mongodb", "postgresql", "git", "figma"];
 export default function HomePage() {
   return <main id="main" className="site-shell">
+    <Companion />
     <Leaf className="hero-leaf" />
     <header className="hero"><div className="hero-intro cross-line">
       <div className="avatar-frame"><Image src={portfolio.profile.avatar} alt="Jordan Sutarto" width={696} height={932} priority sizes="(min-width: 640px) 96px, 72px" /></div>
