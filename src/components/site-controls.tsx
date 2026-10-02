@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { flushSync } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import Lenis from "lenis";
@@ -53,7 +53,7 @@ export function SiteControls() {
     document.addEventListener("portfolio:navigate", navigate);
     return () => document.removeEventListener("portfolio:navigate", navigate);
   }, [pathname, router]);
-  function toggleTheme() {
+  function toggleTheme(event: MouseEvent<HTMLButtonElement>) {
     themeTransition.current?.skipTransition();
     const apply = () => {
       const next = document.documentElement.dataset.theme !== "dark";
@@ -62,6 +62,13 @@ export function SiteControls() {
       try { localStorage.setItem("portfolio-theme", next ? "dark" : "light"); } catch { /* Keep the selection for this session. */ }
     };
     if (!document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) { apply(); return; }
+    const { left, top, width, height } = event.currentTarget.getBoundingClientRect();
+    const x = left + width / 2, y = top + height / 2;
+    const style = document.documentElement.style;
+    style.setProperty("--theme-x", `${x}px`);
+    style.setProperty("--theme-y", `${y}px`);
+    // Extend the soft mask beyond the farthest corner so the final frame is fully covered.
+    style.setProperty("--theme-diameter", `${3 * Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))}px`);
     themeTransition.current = document.startViewTransition(apply);
     void themeTransition.current.ready.catch(() => { /* A newer toggle can skip this animation. */ });
   }
