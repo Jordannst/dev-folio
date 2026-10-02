@@ -10,6 +10,7 @@ export function SectionHeading({ id, children }: { id: string; children: React.R
 
 export function Footer() {
   return <footer className="footer wide-mobile cross-line">
+    <Leaf className="footer-edge-leaf" />
     <Leaf className="footer-leaf" />
     <h2 id="contact" tabIndex={-1}>{portfolio.profile.name}</h2>
     <p>Building practical apps &amp; thoughtful experiences <span aria-hidden="true">✧</span></p>

@@ -10,7 +10,7 @@ export async function GitHubActivity() {
   return <div className="github-activity">
     {activity.status === "unavailable" ? <p className="muted">GitHub activity is temporarily unavailable.</p> : <>
       <p className="calendar-summary"><strong>{activity.calendar.total.toLocaleString("en")}</strong> contributions · {dateLabel(activity.from)} – {dateLabel(activity.to)}</p>
-      <div className="calendar-scroll" role="region" aria-label="GitHub contribution calendar. Scroll horizontally to explore dates." tabIndex={0} data-lenis-prevent>
+      <div className="calendar" role="region" aria-label="GitHub contribution calendar">
         <div className="calendar-weeks">{activity.calendar.weeks.map((week, index, weeks) => {
           const month = week[0].date.slice(0,7);
           const showMonth = index === 0 || month !== weeks[index - 1][0].date.slice(0,7);
