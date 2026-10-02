@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .fold-top { fill: #0a0a0a; }
+    @media (prefers-color-scheme: dark) { .fold-top { fill: #fcfcfc; } }
+  </style>
+  <path class="fold-top" d="M39.4 4 19.6 15.5Q16.4 17.3 16.4 20.2V33L39.4 19.9Z"/>
+  <path fill="#8da7ff" d="m28.9 28.3 17.3 7.6q1.4.6 1.4 1.6v10.4q0 2.6-2.4 4.2L32.3 60V43.3L16.5 35.7Z"/>
+</svg>

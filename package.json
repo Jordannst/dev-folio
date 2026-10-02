@@ -2,6 +2,7 @@
   "name": "dev-folio",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "packageManager": "npm@10.9.2",
   "engines": {
     "node": ">=22.14.0 <23",
@@ -11,7 +12,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/*.test.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.1.23",
