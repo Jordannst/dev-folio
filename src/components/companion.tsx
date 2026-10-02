@@ -2,17 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { clampCompanion } from "@/lib/companion-bounds";
+import { companionPoses as poses, readCompanionState, type CompanionPose as Pose, type CompanionState } from "@/lib/companion-state";
 import styles from "./companion.module.css";
 
-const poses = {
-  idle: { offset: 0, durations: [350, 160, 80, 90, 100, 900] },
-  walk: { offset: 6, durations: [160, 160, 160, 160, 160, 160, 160, 160] },
-  wave: { offset: 14, durations: [120, 160, 180, 160, 220, 650, 250] },
-  curious: { offset: 21, durations: [650, 650, 450, 850] },
-  drag: { offset: 25, durations: [220, 220] },
-  land: { offset: 27, durations: [140, 260] },
-};
-type Pose = keyof typeof poses;
+const storageKey = "portfolio:pogo:v1";
 
 export function Companion() {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -28,6 +21,17 @@ export function Companion() {
     let drag: { id: number; startX: number; startY: number; x: number; lift: number; moved: boolean } | null = null;
     let hovered = false, focused = false, visible = false, dialog = false;
     let raf = 0, last = 0, idleDelay = 900;
+    let departureSaved = false;
+    const save = () => {
+      if (departureSaved) return;
+      const state: CompanionState = {
+        version: 1, pose, frame, xRatio: width ? x / width : .64,
+        liftRatio: stage.clientHeight ? lift / stage.clientHeight : 0,
+        direction, elapsed, age, cooldown, idleDelay, velocity,
+      };
+      try { sessionStorage.setItem(storageKey, JSON.stringify(state)); } catch { /* Storage can be disabled. */ }
+    };
+    const saveDeparture = () => { save(); departureSaved = true; };
     const target = () => width - petWidth * .8125;
     const position = () => { pet.style.transform = `translate(${x}px, ${-lift}px)`; };
     const clamp = () => {
@@ -48,6 +52,7 @@ export function Companion() {
       paint();
     };
     const resize = () => {
+      if (width === stage.clientWidth && petWidth === pet.offsetWidth) return;
       if (drag || keyboardDrag || dropping) finish(true);
       const ratio = width ? x / width : .64;
       width = stage.clientWidth; petWidth = pet.offsetWidth;
@@ -152,18 +157,45 @@ export function Companion() {
     const blur = () => { focused = false; if (keyboardDrag) finish(); resumeSoon(); };
     const scroll = () => { if (drag || keyboardDrag || dropping) finish(true); };
     const onDialog = (event: Event) => { dialog = (event as CustomEvent<boolean>).detail; sync(); };
+    const visibility = () => {
+      if (document.hidden) saveDeparture();
+      else departureSaved = false;
+      sync();
+    };
     const intersection = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; sync(); });
     const sizing = new ResizeObserver(resize);
-    resize(); paint(); intersection.observe(stage); sizing.observe(stage);
+    resize();
+    const initialRect = stage.getBoundingClientRect();
+    visible = initialRect.bottom > 0 && initialRect.top < innerHeight;
+    try {
+      const saved = readCompanionState(sessionStorage.getItem(storageKey));
+      if (saved) {
+        ({ pose, frame, direction, elapsed, age, cooldown, idleDelay, velocity } = saved);
+        x = Math.min(target(), saved.xRatio * width);
+        lift = saved.liftRatio * stage.clientHeight;
+        if (pose === "curious") x = target();
+        // A browser refresh cannot retain a pressed pointer or a keyboard grab.
+        if (lift > 0 || pose === "drag") {
+          clamp(); dropping = lift > 0;
+          if (!dropping) change("land");
+          else if (pose !== "drag") change("drag");
+        }
+      }
+    } catch { /* Start normally when session storage is unavailable. */ }
+    position(); paint(); stage.dataset.ready = "true";
+    intersection.observe(stage); sizing.observe(stage);
     pet.addEventListener("pointerenter", enter); pet.addEventListener("pointerleave", leave);
     pet.addEventListener("pointerdown", pointerDown);
     pet.addEventListener("pointermove", pointerMove); pet.addEventListener("pointerup", pointerEnd);
     pet.addEventListener("pointercancel", pointerEnd); pet.addEventListener("lostpointercapture", pointerEnd);
     pet.addEventListener("keydown", keyDown); window.addEventListener("scroll", scroll, { passive: true });
     pet.addEventListener("click", hello); pet.addEventListener("focus", focus); pet.addEventListener("blur", blur);
-    reduced.addEventListener("change", sync); document.addEventListener("visibilitychange", sync);
+    reduced.addEventListener("change", sync); document.addEventListener("visibilitychange", visibility);
+    window.addEventListener("beforeunload", saveDeparture); window.addEventListener("pagehide", saveDeparture);
+    window.addEventListener("pageshow", visibility);
     document.addEventListener("portfolio:dialog", onDialog);
     return () => {
+      save();
       cancelAnimationFrame(raf); intersection.disconnect(); sizing.disconnect();
       pet.removeEventListener("pointerenter", enter); pet.removeEventListener("pointerleave", leave);
       pet.removeEventListener("pointerdown", pointerDown);
@@ -171,7 +203,9 @@ export function Companion() {
       pet.removeEventListener("pointercancel", pointerEnd); pet.removeEventListener("lostpointercapture", pointerEnd);
       pet.removeEventListener("keydown", keyDown); window.removeEventListener("scroll", scroll);
       pet.removeEventListener("click", hello); pet.removeEventListener("focus", focus); pet.removeEventListener("blur", blur);
-      reduced.removeEventListener("change", sync); document.removeEventListener("visibilitychange", sync);
+      reduced.removeEventListener("change", sync); document.removeEventListener("visibilitychange", visibility);
+      window.removeEventListener("beforeunload", saveDeparture); window.removeEventListener("pagehide", saveDeparture);
+      window.removeEventListener("pageshow", visibility);
       document.removeEventListener("portfolio:dialog", onDialog);
     };
   }, []);
