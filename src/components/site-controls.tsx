@@ -6,6 +6,12 @@ import Lenis from "lenis";
 import { portfolio } from "@/data/portfolio";
 import { Icon } from "./icon";
 
+function scrollOptions(target: number) {
+  const max = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+  const distance = Math.abs(Math.min(max, Math.max(0, target)) - window.scrollY);
+  return { duration: Math.min(1.1, 0.4 + distance / 3000), easing: (t: number) => 1 - Math.pow(1 - t, 3) };
+}
+
 export function SiteControls() {
   const [dark, setDark] = useState(false);
   const manual = useRef(false);
@@ -28,7 +34,7 @@ export function SiteControls() {
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const sync = () => {
       lenis.current?.destroy();
-      lenis.current = motion.matches ? null : new Lenis({ autoRaf: true, anchors: true, prevent: node => !!node.closest("[data-lenis-prevent]") });
+      lenis.current = motion.matches ? null : new Lenis({ autoRaf: true, lerp: 0.085, smoothWheel: true, syncTouch: false, anchors: true, prevent: node => !!node.closest("[data-lenis-prevent]") });
       if (document.querySelector('[role="dialog"]')) lenis.current?.stop();
     };
     const dialog = (event: Event) => { if ((event as CustomEvent<boolean>).detail) lenis.current?.stop(); else lenis.current?.start(); };
@@ -40,8 +46,10 @@ export function SiteControls() {
     function focusDestination(id: string) {
       const heading = document.getElementById(id); if (!heading) return;
       heading.focus({ preventScroll: true });
-      if (lenis.current) lenis.current.scrollTo(heading, { offset: -96 });
-      else heading.scrollIntoView({ block: "start", behavior: "instant" });
+      // Use a numeric target so Lenis does not also subtract CSS scroll padding/margin.
+      const target = Math.max(0, window.scrollY + heading.getBoundingClientRect().top - 96);
+      if (lenis.current) lenis.current.scrollTo(target, scrollOptions(target));
+      else window.scrollTo({ top: target, behavior: "instant" });
     }
     if (pending.current) { const id = pending.current; pending.current = null; requestAnimationFrame(() => focusDestination(id)); }
     const navigate = (event: Event) => {
@@ -59,7 +67,7 @@ export function SiteControls() {
       document.getElementById("home")?.focus({ preventScroll: true });
       document.dispatchEvent(new Event("portfolio:back-to-top"));
     };
-    if (lenis.current) lenis.current.scrollTo(0, { duration: 1, onComplete: replay });
+    if (lenis.current) lenis.current.scrollTo(0, { ...scrollOptions(0), onComplete: replay });
     else { window.scrollTo({ top: 0, behavior: "instant" }); replay(); }
   }
   function toggleTheme(event: MouseEvent<HTMLButtonElement>) {
