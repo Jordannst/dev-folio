@@ -12,7 +12,16 @@ export const portfolio = {
   "socials": [
     {
       "label": "GitHub",
-      "url": "https://github.com/Jordannst"
+      "url": "https://github.com/Jordannst",
+      // Profile statistics supplied by Jordan on 2026-10-03; not live counts.
+      "stats": [{ "label": "Repositories", "value": 36 }, { "label": "Followers", "value": 17 }, { "label": "Following", "value": 17 }],
+      "achievements": [
+        { "name": "Galaxy Brain", "image": "/images/achievements/galaxy-brain-default-847262c21056.png" },
+        { "name": "Pull Shark", "image": "/images/achievements/pull-shark-bronze-a37accb528d1.png", "tier": 2 },
+        { "name": "Pair Extraordinaire", "image": "/images/achievements/pair-extraordinaire-silver-a0b2b472348c.png", "tier": 3 },
+        { "name": "YOLO", "image": "/images/achievements/yolo-default-be0bbff04951.png" },
+        { "name": "Quickdraw", "image": "/images/achievements/quickdraw-default-39c6aec8ff89.png" }
+      ]
     },
     {
       "label": "LinkedIn",
@@ -20,7 +29,8 @@ export const portfolio = {
     },
     {
       "label": "Instagram",
-      "url": "https://www.instagram.com/_jordannst/"
+      "url": "https://www.instagram.com/_jordannst/",
+      "stats": [{ "label": "Followers", "value": 194 }, { "label": "Following", "value": 302 }]
     }
   ],
   "experience": [
