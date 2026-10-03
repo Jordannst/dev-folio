@@ -28,7 +28,7 @@ export function SocialLinks({ socials, profile }: { socials: Social[]; profile: 
         <a className="button" href={social.url} target="_blank" rel="noopener noreferrer"
           aria-describedby={open === index ? `${id}-${index}` : undefined}
           onFocus={event => { if (event.currentTarget.matches(":focus-visible")) setOpen(index); }}>
-          <Icon name={icons[index]} />{social.label}<span className="sr-only"> (opens in new tab)</span>
+          <span className="button-face"><Icon name={icons[index]} />{social.label}<span className="sr-only"> (opens in new tab)</span></span>
         </a>
         {open === index && <div className="social-preview" id={`${id}-${index}`} role="tooltip">
           <div className={`social-card${index === 0 ? " social-card-github" : ""}`}>

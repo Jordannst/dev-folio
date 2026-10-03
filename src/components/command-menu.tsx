@@ -32,7 +32,7 @@ export function CommandMenu() {
     document.dispatchEvent(new CustomEvent("portfolio:navigate", { detail: href }));
   }
   return <Dialog.Root open={open} onOpenChange={setOpen}>
-    <Dialog.Trigger className="command-trigger" aria-label="Open command menu" ref={trigger}><kbd>{modifier}</kbd><kbd>K</kbd></Dialog.Trigger>
+    <Dialog.Trigger className="command-trigger" aria-label="Open command menu" ref={trigger}><span className="button-face"><kbd>{modifier}</kbd><kbd>K</kbd></span></Dialog.Trigger>
     <Dialog.Portal><Dialog.Overlay className="dialog-overlay" data-lenis-prevent />
       <Dialog.Content className="command-dialog" data-lenis-prevent onCloseAutoFocus={event => { event.preventDefault(); if (!navigating.current) trigger.current?.focus(); }}>
         <Dialog.Title className="sr-only">Command menu</Dialog.Title><Dialog.Description className="sr-only">Search for a section and press Enter to navigate.</Dialog.Description>

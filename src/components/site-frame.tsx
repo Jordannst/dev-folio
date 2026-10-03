@@ -14,7 +14,7 @@ export function Footer() {
     <Leaf className="footer-leaf" />
     <h2 id="contact" tabIndex={-1}>{portfolio.profile.name}</h2>
     <p>Building practical apps &amp; thoughtful experiences <span aria-hidden="true">✧</span></p>
-    <a className="button contact-button" href={`mailto:${portfolio.profile.email}`}>Get in touch <Icon name="arrow" /></a>
+    <a className="button contact-button" href={`mailto:${portfolio.profile.email}`}><span className="button-face">Get in touch <Icon name="arrow" /></span></a>
     <div className="footer-bottom"><span>Made with care <span aria-hidden="true">♡</span></span><span>© {new Date().getFullYear()} {portfolio.profile.name}</span></div>
   </footer>;
 }
