@@ -13,8 +13,7 @@ function scrollOptions(target: number) {
 }
 
 export function SiteControls() {
-  const [dark, setDark] = useState(false);
-  const manual = useRef(false);
+  const [dark, setDark] = useState(true);
   const themeTransition = useRef<ViewTransition | null>(null);
   const lenis = useRef<Lenis | null>(null);
   const pending = useRef<string | null>(null);
@@ -22,13 +21,7 @@ export function SiteControls() {
   const pathname = usePathname();
   const router = useRouter();
   useEffect(() => {
-    const media = matchMedia("(prefers-color-scheme: dark)");
-    try { manual.current = ["light", "dark"].includes(localStorage.getItem("portfolio-theme") || ""); } catch { /* Use system theme without storage. */ }
     setDark(document.documentElement.dataset.theme === "dark");
-    const update = () => { if (!manual.current) { document.documentElement.dataset.theme = media.matches ? "dark" : "light"; setDark(media.matches); } };
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
   }, []);
   useEffect(() => {
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
@@ -75,7 +68,6 @@ export function SiteControls() {
     const animate = !!document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches;
     const apply = () => {
       const next = document.documentElement.dataset.theme !== "dark";
-      manual.current = true;
       flushSync(() => { document.documentElement.dataset.theme = next ? "dark" : "light"; setDark(next); });
       document.dispatchEvent(new CustomEvent("portfolio:theme", { detail: { light: !next, delay: animate ? 450 : 0 } }));
       try { localStorage.setItem("portfolio-theme", next ? "dark" : "light"); } catch { /* Keep the selection for this session. */ }
