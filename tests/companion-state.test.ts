@@ -18,3 +18,11 @@ test("ignores corrupt or incompatible browser snapshots", () => {
     { age: null }, { elapsed: 200 }, { idleDelay: "900" }, { cooldown: 30001 }, { velocity: 11 },
   ].map(patch => JSON.stringify({ ...snapshot, ...patch }))]) assert.equal(readCompanionState(raw), null);
 });
+
+test("restores each stage of the seated activity without losing its progress", () => {
+  for (const pose of ["sitDown", "sit", "standUp"] as const) {
+    const seated = { ...snapshot, pose, frame: 0, elapsed: 240, age: 240, xRatio: .46 };
+    assert.deepEqual(readCompanionState(JSON.stringify(seated)), seated);
+  }
+  assert.equal(readCompanionState(JSON.stringify({ ...snapshot, pose: "sit", frame: 0, elapsed: 5200 })), null);
+});

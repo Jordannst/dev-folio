@@ -5,6 +5,9 @@ export const companionPoses = {
   curious: { offset: 21, durations: [650, 650, 450, 850] },
   drag: { offset: 25, durations: [220, 220] },
   land: { offset: 27, durations: [140, 260] },
+  sitDown: { offset: 0, durations: [500] },
+  sit: { offset: 0, durations: [5200] },
+  standUp: { offset: 0, durations: [500] },
 };
 export type CompanionPose = keyof typeof companionPoses;
 export type CompanionState = {

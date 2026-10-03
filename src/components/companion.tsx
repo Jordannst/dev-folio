@@ -16,7 +16,7 @@ export function Companion() {
     const stage = stageRef.current!, pet = petRef.current!, sprite = spriteRef.current!;
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     let pose: Pose = "idle", frame = 0, elapsed = 0, age = 0, cooldown = 0;
-    let x = 0, direction = 1, width = 0, petWidth = 80;
+    let x = 0, direction = -1, width = 0, petWidth = 80;
     let lift = 0, velocity = 0, dropping = false, keyboardDrag = false, suppressClick = false;
     let drag: { id: number; startX: number; startY: number; x: number; lift: number; moved: boolean } | null = null;
     let hovered = false, focused = false, visible = false, dialog = false;
@@ -33,6 +33,8 @@ export function Companion() {
     };
     const saveDeparture = () => { save(); departureSaved = true; };
     const target = () => width - petWidth * .8125;
+    const middle = () => (width - petWidth) / 2;
+    const seated = () => pose === "sitDown" || pose === "sit" || pose === "standUp";
     const position = () => { pet.style.transform = `translate(${x}px, ${-lift}px)`; };
     const clamp = () => {
       const rect = stage.getBoundingClientRect();
@@ -45,6 +47,10 @@ export function Companion() {
       stage.dataset.touching = String(pose === "curious" && frame === 2);
       pet.dataset.pose = pose;
       pet.dataset.frame = String(frame);
+      const progress = Math.min(1, age / 500);
+      const settle = pose === "sitDown" ? progress : pose === "standUp" ? 1 - progress : pose === "sit" ? 1 : 0;
+      pet.style.setProperty("--sit", String(settle * settle * (3 - 2 * settle)));
+      pet.style.setProperty("--swing", `${pose === "sit" ? Math.sin(age / 260) * 22 : 0}deg`);
     };
     const change = (next: Pose) => {
       pose = next; frame = 0; elapsed = 0; age = 0;
@@ -56,7 +62,7 @@ export function Companion() {
       if (drag || keyboardDrag || dropping) finish(true);
       const ratio = width ? x / width : .64;
       width = stage.clientWidth; petWidth = pet.offsetWidth;
-      x = pose === "curious" ? target() : Math.max(0, Math.min(target(), width * ratio));
+      x = seated() ? middle() : pose === "curious" ? target() : Math.max(0, Math.min(target(), width * ratio));
       position();
     };
     const tick = (now: number) => {
@@ -74,14 +80,20 @@ export function Companion() {
           if (pose === "curious") { direction = -1; cooldown = 30000; change("idle"); }
           else if (pose === "wave") { change("idle"); idleDelay = 500; }
           else if (pose === "land") { change("idle"); idleDelay = 450; }
+          else if (pose === "sitDown") change("sit");
+          else if (pose === "sit") change("standUp");
+          else if (pose === "standUp") { cooldown = 30000; change("walk"); }
           else frame = 0;
         }
         paint();
       }
       if (pose === "idle" && age > idleDelay && !hovered && !focused && !drag && !keyboardDrag) change("walk");
       if (pose === "walk") {
+        const previousX = x;
         x += direction * dt * .022;
-        if (x >= target()) {
+        if (!cooldown && (previousX - middle()) * (x - middle()) <= 0 && !hovered && !focused && !drag) {
+          x = middle(); change("sitDown");
+        } else if (x >= target()) {
           x = target();
           if (!cooldown) change("curious");
           else { direction = -1; change("idle"); }
@@ -89,6 +101,7 @@ export function Companion() {
         else if (age > 5500) change("idle");
         position();
       }
+      if (seated()) paint();
       raf = requestAnimationFrame(tick);
     };
     const sync = () => {
@@ -103,6 +116,7 @@ export function Companion() {
       if (event?.type === "click" && suppressClick) { suppressClick = false; return; }
       if (drag?.moved || keyboardDrag || dropping || reduced.matches || pose === "wave") return;
       if (pose === "curious") { cooldown = 30000; direction = -1; }
+      if (seated()) cooldown = 30000;
       change("wave");
     };
     const enter = (event: PointerEvent) => { if (event.pointerType !== "touch") { hovered = true; hello(); } };
@@ -125,7 +139,7 @@ export function Companion() {
       focused = false; suppressClick = false;
       const catching = dropping;
       if (catching) { dropping = false; suppressClick = true; change("drag"); stage.dataset.dragging = "true"; }
-      if (pose === "walk") change("idle");
+      if (pose === "walk" || seated()) { if (seated()) cooldown = 30000; change("idle"); }
       drag = { id: event.pointerId, startX: event.clientX, startY: event.clientY, x, lift, moved: catching };
       pet.setPointerCapture(event.pointerId);
     };
@@ -174,6 +188,7 @@ export function Companion() {
         x = Math.min(target(), saved.xRatio * width);
         lift = saved.liftRatio * stage.clientHeight;
         if (pose === "curious") x = target();
+        if (seated()) x = middle();
         // A browser refresh cannot retain a pressed pointer or a keyboard grab.
         if (lift > 0 || pose === "drag") {
           clamp(); dropping = lift > 0;
@@ -214,6 +229,11 @@ export function Companion() {
     <span className={styles.dot} aria-hidden="true" />
     <button ref={petRef} type="button" className={styles.pet} aria-label="Say hello to Pogo" aria-describedby="pogo-controls">
       <span ref={spriteRef} className={styles.sprite} aria-hidden="true" />
+      <span className={styles.seated} aria-hidden="true">
+        <span className={styles.seatedBody} />
+        <span className={styles.happyEyeLeft} /><span className={styles.happyEyeRight} />
+        <span className={styles.leftLeg} /><span className={styles.rightLeg} />
+      </span>
     </button>
     <span id="pogo-controls" className="sr-only">Drag to move Pogo. Keyboard: Space to pick up, arrow keys to move, Enter or Escape to put down.</span>
   </div>;
