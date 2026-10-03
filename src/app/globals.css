@@ -103,3 +103,13 @@ body:has(:focus-visible) .bottom-blur { opacity:0; }.scroll-progress { position:
   .skills-section { margin-top:16px; padding-bottom:64px; }.skill-list { gap:8px; }.projects-grid { grid-template-columns:minmax(0,1fr); row-gap:44px; }.project-card:nth-child(n+2)::before { content:""; position:absolute; top:-23px; width:100%; height:1px; background:var(--grid-dot) left top / 7px 1px repeat-x; }.project-card p { font-size:14px; }.project-links { margin-top:24px; }.github-section { margin-top:48px; }.footer { padding-top:64px; }.footer p { max-width:85%; }.footer-bottom { padding-top:88px; }.archive-shell { margin-top:56px; }.command-dialog { top:15vh; }
 }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+
+@media (width < 640px) {
+  .skills-section { padding-bottom:32px; }
+  .skill-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(40px,1fr)); }
+  .skill-row { display:contents; }
+  .skill-row > [data-skill] { position:relative; }
+  .skill { width:100%; justify-content:center; }
+  .skill[data-expanded=true] .skill-label { position:absolute; top:calc(100% + 6px); left:0; z-index:5; width:max-content; max-width:160px; margin:0; padding:5px 8px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--foreground); box-shadow:0 3px 12px #0002; }
+  .skill-row > [data-skill]:last-child .skill-label { left:auto; right:0; }
+}
