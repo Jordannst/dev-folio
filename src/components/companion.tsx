@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { clampCompanion } from "@/lib/companion-bounds";
 import { companionPoses as poses, readCompanionState, type CompanionPose as Pose, type CompanionState } from "@/lib/companion-state";
+import { glassesAnchors, themeReactionPhase } from "@/lib/companion-theme";
 import styles from "./companion.module.css";
 
 const storageKey = "portfolio:pogo:v1";
@@ -11,6 +12,7 @@ export function Companion() {
   const stageRef = useRef<HTMLDivElement>(null);
   const petRef = useRef<HTMLButtonElement>(null);
   const spriteRef = useRef<HTMLSpanElement>(null);
+  const accessoryRef = useRef<SVGGElement>(null);
 
   useEffect(() => {
     const stage = stageRef.current!, pet = petRef.current!, sprite = spriteRef.current!;
@@ -22,6 +24,8 @@ export function Companion() {
     let hovered = false, focused = false, visible = false, dialog = false;
     let raf = 0, last = 0, idleDelay = 900;
     let departureSaved = false;
+    let light = document.documentElement.dataset.theme !== "dark";
+    let reaction: { light: boolean; elapsed: number } | null = null;
     const save = () => {
       if (departureSaved) return;
       const state: CompanionState = {
@@ -41,9 +45,12 @@ export function Companion() {
       ({ x, lift } = clampCompanion(x, lift, width, Math.min(rect.height, rect.bottom), petWidth, pet.offsetHeight));
     };
     const paint = () => {
-      const index = poses[pose].offset + frame;
+      const phase = reaction ? themeReactionPhase(reaction.light, reaction.elapsed) : null;
+      const reacting = !!phase && phase !== "waiting";
+      const index = reacting ? 0 : poses[pose].offset + frame;
       sprite.style.backgroundPosition = `${(index % 8) / 7 * 100}% ${Math.floor(index / 8) / 3 * 100}%`;
-      sprite.style.transform = pose === "walk" && direction < 0 ? "scaleX(-1)" : "";
+      const mirrored = !reacting && pose === "walk" && direction < 0;
+      sprite.style.transform = mirrored ? "scaleX(-1)" : "";
       stage.dataset.touching = String(pose === "curious" && frame === 2);
       pet.dataset.pose = pose;
       pet.dataset.frame = String(frame);
@@ -51,7 +58,14 @@ export function Companion() {
       const settle = pose === "sitDown" ? progress : pose === "standUp" ? 1 - progress : pose === "sit" ? 1 : 0;
       pet.style.setProperty("--sit", String(settle * settle * (3 - 2 * settle)));
       pet.style.setProperty("--swing", `${pose === "sit" ? Math.sin(age / 260) * 22 : 0}deg`);
+      if (phase) pet.dataset.themeReaction = phase;
+      else delete pet.dataset.themeReaction;
+      pet.dataset.sunglasses = String(reaction ? (phase === "waiting" ? !reaction.light : phase !== "squint" && phase !== "shade") : light);
+      const [ax, ay, scale, angle] = glassesAnchors[index];
+      const sittingOffset = seated() ? settle * settle * (3 - 2 * settle) * 6 : 0;
+      accessoryRef.current!.setAttribute("transform", `${mirrored ? "translate(80 0) scale(-1 1) " : ""}translate(${ax} ${ay + sittingOffset}) rotate(${angle}) scale(${scale} 1)`);
     };
+    const cancelReaction = () => { reaction = null; paint(); };
     const change = (next: Pose) => {
       pose = next; frame = 0; elapsed = 0; age = 0;
       if (next === "idle") idleDelay = 1000 + Math.random() * 1000;
@@ -67,6 +81,16 @@ export function Companion() {
     };
     const tick = (now: number) => {
       const dt = last ? Math.min(now - last, 80) : 0; last = now;
+      if (reaction) {
+        reaction.elapsed += dt;
+        const phase = themeReactionPhase(reaction.light, reaction.elapsed);
+        if (!phase) reaction = null;
+        else if (phase !== "waiting") {
+          paint();
+          raf = requestAnimationFrame(tick);
+          return;
+        }
+      }
       elapsed += dt; age += dt; cooldown = Math.max(0, cooldown - dt);
       if (dropping) {
         velocity += dt * .002;
@@ -108,6 +132,7 @@ export function Companion() {
       cancelAnimationFrame(raf); raf = 0; last = 0;
       const active = visible && !document.hidden && !reduced.matches && !dialog;
       stage.dataset.paused = String(!active);
+      if (!active) cancelReaction();
       if (!visible || document.hidden || dialog || reduced.matches) finish(true);
       if (reduced.matches) change("idle");
       if (active) raf = requestAnimationFrame(tick);
@@ -115,6 +140,7 @@ export function Companion() {
     const hello = (event?: Event) => {
       if (event?.type === "click" && suppressClick) { suppressClick = false; return; }
       if (drag?.moved || keyboardDrag || dropping || reduced.matches || pose === "wave") return;
+      if (reaction) return;
       if (pose === "curious") { cooldown = 30000; direction = -1; }
       if (seated()) cooldown = 30000;
       change("wave");
@@ -136,6 +162,7 @@ export function Companion() {
     };
     const pointerDown = (event: PointerEvent) => {
       if (!event.isPrimary || event.button !== 0 || keyboardDrag) return;
+      cancelReaction();
       focused = false; suppressClick = false;
       const catching = dropping;
       if (catching) { dropping = false; suppressClick = true; change("drag"); stage.dataset.dragging = "true"; }
@@ -156,6 +183,7 @@ export function Companion() {
       if (event.code === "Space" && !drag) {
         event.preventDefault();
         if (event.repeat) return;
+        cancelReaction();
         if (keyboardDrag) finish();
         else { dropping = false; keyboardDrag = true; clamp(); change("drag"); stage.dataset.dragging = "true"; position(); }
       } else if (keyboardDrag && (event.key === "Enter" || event.key === "Escape")) {
@@ -171,6 +199,19 @@ export function Companion() {
     const blur = () => { focused = false; if (keyboardDrag) finish(); resumeSoon(); };
     const scroll = () => { if (drag || keyboardDrag || dropping) finish(true); };
     const onDialog = (event: Event) => { dialog = (event as CustomEvent<boolean>).detail; sync(); };
+    const onTheme = (event: Event) => {
+      const { light: next, delay } = (event as CustomEvent<{ light: boolean; delay: number }>).detail;
+      light = next;
+      // Freeze activity timers rather than replacing the current pose, so sitting/walking resumes.
+      reaction = visible && !document.hidden && !dialog && !reduced.matches && !drag && !keyboardDrag && !dropping
+        ? { light, elapsed: -delay } : null;
+      paint();
+    };
+    const themeObserver = new MutationObserver(() => {
+      light = document.documentElement.dataset.theme !== "dark";
+      if (reaction && reaction.light !== light) reaction = null;
+      paint();
+    });
     const visibility = () => {
       if (document.hidden) saveDeparture();
       else departureSaved = false;
@@ -199,6 +240,8 @@ export function Companion() {
     } catch { /* Start normally when session storage is unavailable. */ }
     position(); paint(); stage.dataset.ready = "true";
     intersection.observe(stage); sizing.observe(stage);
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    document.addEventListener("portfolio:theme", onTheme);
     pet.addEventListener("pointerenter", enter); pet.addEventListener("pointerleave", leave);
     pet.addEventListener("pointerdown", pointerDown);
     pet.addEventListener("pointermove", pointerMove); pet.addEventListener("pointerup", pointerEnd);
@@ -211,7 +254,8 @@ export function Companion() {
     document.addEventListener("portfolio:dialog", onDialog);
     return () => {
       save();
-      cancelAnimationFrame(raf); intersection.disconnect(); sizing.disconnect();
+      cancelAnimationFrame(raf); intersection.disconnect(); sizing.disconnect(); themeObserver.disconnect();
+      document.removeEventListener("portfolio:theme", onTheme);
       pet.removeEventListener("pointerenter", enter); pet.removeEventListener("pointerleave", leave);
       pet.removeEventListener("pointerdown", pointerDown);
       pet.removeEventListener("pointermove", pointerMove); pet.removeEventListener("pointerup", pointerEnd);
@@ -228,11 +272,28 @@ export function Companion() {
   return <div ref={stageRef} className={styles.stage} data-companion="pogo">
     <span className={styles.dot} aria-hidden="true" />
     <button ref={petRef} type="button" className={styles.pet} aria-label="Say hello to Pogo" aria-describedby="pogo-controls">
+      <span className={styles.visual}>
       <span ref={spriteRef} className={styles.sprite} aria-hidden="true" />
       <span className={styles.seated} aria-hidden="true">
         <span className={styles.seatedBody} />
         <span className={styles.happyEyeLeft} /><span className={styles.happyEyeRight} />
         <span className={styles.leftLeg} /><span className={styles.rightLeg} />
+      </span>
+      <svg className={styles.accessory} viewBox="0 0 80 64" aria-hidden="true" shapeRendering="crispEdges">
+        <g ref={accessoryRef}>
+          <g className={styles.reactionEyes}>
+            <path fill="#92b8e1" d="M2 0h8v8H2zM20 0h9v8h-9z" />
+            <path className={styles.squintEyes} fill="#293e50" d="M3 4h6v2H3zM22 4h6v2h-6z" />
+            <path className={styles.smileEyes} fill="#293e50" d="M3 5V3h2V1h2v2h2v2H7V3H5v2zM22 5V3h2V1h2v2h2v2h-2V3h-2v2z" />
+          </g>
+          <g className={styles.glasses}>
+            <path fill="#20272c" d="M0 0h12v3h7V0h12v8H19V6h-7v2H0z" />
+            <path fill="#899499" d="M2 2h2v2H2zM21 2h2v2h-2z" />
+          </g>
+          <path className={styles.shadeHand} fill="#92b8e1" d="M-6 17v-9h3V0h4v-3h13v5H2v8h-3v7z" />
+          <path className={styles.glassesHand} fill="#92b8e1" d="M29 19V8h-2V1h6v6h3v12z" />
+        </g>
+      </svg>
       </span>
     </button>
     <span id="pogo-controls" className="sr-only">Drag to move Pogo. Keyboard: Space to pick up, arrow keys to move, Enter or Escape to put down.</span>

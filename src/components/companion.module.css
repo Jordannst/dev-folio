@@ -3,10 +3,36 @@
 .stage[data-dragging=true] .pet { cursor:grabbing; }
 .stage:not([data-ready=true]) .pet { visibility:hidden; }
 .sprite { display:block; width:100%; height:100%; background:url('/images/pogo.webp') 0 0 / 800% 400% no-repeat; image-rendering:pixelated; pointer-events:none; }
+.visual { display:block; position:absolute; inset:0; transform-origin:50% 100%; transition:transform 180ms steps(3,end); pointer-events:none; }
+.accessory { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+.glasses { visibility:hidden; transform-origin:15px 5px; transition:transform 500ms steps(6,end),opacity 160ms linear; }
+.pet[data-sunglasses=true] .glasses { visibility:visible; }
+.reactionEyes,.shadeHand,.glassesHand { display:none; }
+.pet:is([data-theme-reaction=squint],[data-theme-reaction=shade],[data-theme-reaction=put-on]) .reactionEyes,
+.pet:is([data-theme-reaction=peek],[data-theme-reaction=take-off],[data-theme-reaction=settle]) .reactionEyes { display:block; }
+.smileEyes { display:none; }
+.pet:is([data-theme-reaction=peek],[data-theme-reaction=take-off],[data-theme-reaction=settle]) .smileEyes { display:block; }
+.pet:is([data-theme-reaction=peek],[data-theme-reaction=take-off],[data-theme-reaction=settle]) .squintEyes { display:none; }
+.pet:is([data-theme-reaction=squint],[data-theme-reaction=shade]) .glasses { opacity:0; transform:translate(25px,18px) rotate(70deg) scale(.7); }
+.pet[data-theme-reaction=squint] .visual { transform:translateX(-2px) rotate(-3deg); }
+.pet[data-theme-reaction=shade] .shadeHand { display:block; }
+.pet:is([data-theme-reaction=put-on],[data-theme-reaction=peek],[data-theme-reaction=take-off]) .glassesHand { display:block; }
+.pet[data-theme-reaction=cool] .visual { transform:translateY(-1px) rotate(-2deg); }
+.pet[data-theme-reaction=confused] .visual { animation:look-around 650ms steps(2,end); }
+.pet[data-theme-reaction=peek] .glasses { transform:translateY(5px); }
+.pet[data-theme-reaction=peek] .glassesHand { transform:translateY(5px); }
+.pet[data-theme-reaction=take-off] .glasses { transform:translate(26px,17px) rotate(70deg) scale(.7); }
+.pet[data-theme-reaction=take-off] .glassesHand { transform:translate(7px,9px); }
+.pet[data-theme-reaction=settle] .glasses { opacity:0; transform:translate(27px,23px) rotate(80deg) scale(.4); }
+/* Remove the neutral sprite's lowered arm while the same arm is raised. */
+.pet[data-theme-reaction=shade] :is(.sprite,.seatedBody) { clip-path:polygon(0 0,100% 0,100% var(--body-bottom,100%),26% var(--body-bottom,100%),26% 70%,0 70%); }
+.pet:is([data-theme-reaction=put-on],[data-theme-reaction=peek],[data-theme-reaction=take-off]) :is(.sprite,.seatedBody) { clip-path:polygon(0 0,100% 0,100% 70%,74% 70%,74% var(--body-bottom,100%),0 var(--body-bottom,100%)); }
+@keyframes look-around { 25% { transform:translateX(-2px); } 75% { transform:translateX(2px); } }
+@media (prefers-reduced-motion:reduce) { .visual,.glasses { transition:none; animation:none; } }
 .seated { display:none; position:absolute; inset:0; pointer-events:none; transform:translateY(calc(var(--sit, 0) * 9.375%)); }
 .pet:is([data-pose=sitDown],[data-pose=sit],[data-pose=standUp]) .sprite { visibility:hidden; }
 .pet:is([data-pose=sitDown],[data-pose=sit],[data-pose=standUp]) .seated { display:block; }
-.seatedBody { position:absolute; inset:0; background:url('/images/pogo.webp') 0 0 / 800% 400% no-repeat; image-rendering:pixelated; clip-path:inset(0 0 9.375%); }
+.seatedBody { --body-bottom:90.625%; position:absolute; inset:0; background:url('/images/pogo.webp') 0 0 / 800% 400% no-repeat; image-rendering:pixelated; clip-path:inset(0 0 9.375%); }
 .happyEyeLeft, .happyEyeRight { position:absolute; top:51.5625%; width:10%; height:10.9375%; background:#92b8e1; }
 .happyEyeLeft { left:32.5%; }
 .happyEyeRight { left:56.25%; }

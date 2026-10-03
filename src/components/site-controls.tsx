@@ -72,13 +72,15 @@ export function SiteControls() {
   }
   function toggleTheme(event: MouseEvent<HTMLButtonElement>) {
     themeTransition.current?.skipTransition();
+    const animate = !!document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches;
     const apply = () => {
       const next = document.documentElement.dataset.theme !== "dark";
       manual.current = true;
       flushSync(() => { document.documentElement.dataset.theme = next ? "dark" : "light"; setDark(next); });
+      document.dispatchEvent(new CustomEvent("portfolio:theme", { detail: { light: !next, delay: animate ? 450 : 0 } }));
       try { localStorage.setItem("portfolio-theme", next ? "dark" : "light"); } catch { /* Keep the selection for this session. */ }
     };
-    if (!document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) { apply(); return; }
+    if (!animate) { apply(); return; }
     const { left, top, width, height } = event.currentTarget.getBoundingClientRect();
     const x = left + width / 2, y = top + height / 2;
     const style = document.documentElement.style;
