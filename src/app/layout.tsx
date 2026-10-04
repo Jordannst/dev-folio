@@ -18,7 +18,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Jordannst",
+  title: "Jordannst | Full Stack Developer & AI",
   description: "Fullstack Developer and AI enthusiast based in Indonesia.",
 };
 
