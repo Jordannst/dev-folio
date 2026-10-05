@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { clampCompanion } from "@/lib/companion-bounds";
 import { companionPoses as poses, readCompanionState, type CompanionPose as Pose, type CompanionState } from "@/lib/companion-state";
 import { glassesAnchors, themeReactionPhase } from "@/lib/companion-theme";
 import styles from "./companion.module.css";
+import { PogoReport } from "./pogo-report";
 
 const storageKey = "portfolio:pogo:v1";
 
@@ -13,6 +14,8 @@ export function Companion() {
   const petRef = useRef<HTMLButtonElement>(null);
   const spriteRef = useRef<HTMLSpanElement>(null);
   const accessoryRef = useRef<SVGGElement>(null);
+  const [reportOpen, setReportOpen] = useState(false);
+  const closeReport = useCallback(() => setReportOpen(false), []);
 
   useEffect(() => {
     const stage = stageRef.current!, pet = petRef.current!, sprite = spriteRef.current!;
@@ -24,6 +27,7 @@ export function Companion() {
     let hovered = false, focused = false, visible = false, dialog = false;
     let raf = 0, last = 0, idleDelay = 900;
     let departureSaved = false;
+    let lastTap = 0, secretAge: number | null = null;
     let light = document.documentElement.dataset.theme !== "dark";
     let reaction: { light: boolean; elapsed: number } | null = null;
     const save = () => {
@@ -81,6 +85,18 @@ export function Companion() {
     };
     const tick = (now: number) => {
       const dt = last ? Math.min(now - last, 80) : 0; last = now;
+      if (secretAge !== null) {
+        secretAge += dt;
+        if (secretAge < 1800) {
+          const phase = secretAge < 650 ? "reveal" : secretAge < 1100 ? "reach" : "press";
+          if (phase === "press" && pet.dataset.secret !== "press") setReportOpen(true);
+          pet.dataset.secret = phase;
+          raf = requestAnimationFrame(tick);
+          return;
+        }
+        secretAge = null; delete pet.dataset.secret;
+        change("idle");
+      }
       if (reaction) {
         reaction.elapsed += dt;
         const phase = themeReactionPhase(reaction.light, reaction.elapsed);
@@ -132,13 +148,32 @@ export function Companion() {
       cancelAnimationFrame(raf); raf = 0; last = 0;
       const active = visible && !document.hidden && !reduced.matches && !dialog;
       stage.dataset.paused = String(!active);
-      if (!active) cancelReaction();
+      if (!active) { cancelReaction(); secretAge = null; delete pet.dataset.secret; }
       if (!visible || document.hidden || dialog || reduced.matches) finish(true);
       if (reduced.matches) change("idle");
       if (active) raf = requestAnimationFrame(tick);
     };
+    const revealReport = () => {
+      if (secretAge !== null) return;
+      finish(true); cancelReaction(); change("idle");
+      if (reduced.matches) setReportOpen(true);
+      else {
+        pet.dataset.secretSide = x + petWidth * 1.2 > width ? "left" : "right";
+        secretAge = 0; pet.dataset.secret = "reveal";
+      }
+    };
     const hello = (event?: Event) => {
-      if (event?.type === "click" && suppressClick) { suppressClick = false; return; }
+      if (event?.type === "click" && suppressClick) { suppressClick = false; lastTap = 0; return; }
+      if (event?.type === "click" && !drag?.moved && !keyboardDrag && !dropping) {
+        const now = performance.now();
+        if ((event as MouseEvent).detail === 2 || (lastTap && now - lastTap < 400)) {
+          lastTap = 0;
+          revealReport();
+          return;
+        }
+        lastTap = now;
+      }
+      if (secretAge !== null) return;
       if (drag?.moved || keyboardDrag || dropping || reduced.matches || pose === "wave") return;
       if (reaction) return;
       if (pose === "curious") { cooldown = 30000; direction = -1; }
@@ -161,7 +196,7 @@ export function Companion() {
       position();
     };
     const pointerDown = (event: PointerEvent) => {
-      if (!event.isPrimary || event.button !== 0 || keyboardDrag) return;
+      if (!event.isPrimary || event.button !== 0 || keyboardDrag || secretAge !== null) return;
       cancelReaction();
       focused = false; suppressClick = false;
       const catching = dropping;
@@ -175,11 +210,17 @@ export function Companion() {
       const dx = event.clientX - drag.startX, dy = event.clientY - drag.startY;
       if (!drag.moved && Math.hypot(dx, dy) < 5) return;
       if (!drag.moved) { drag.moved = true; suppressClick = true; change("drag"); stage.dataset.dragging = "true"; }
+      lastTap = 0;
       x = drag.x + dx; lift = drag.lift - dy;
       clamp(); position();
     };
     const pointerEnd = (event: PointerEvent) => { if (drag?.id === event.pointerId) finish(event.type !== "pointerup"); };
     const keyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter" && event.shiftKey && !event.repeat && !keyboardDrag) {
+        event.preventDefault(); revealReport();
+        return;
+      }
+      if (secretAge !== null) return;
       if (event.code === "Space" && !drag) {
         event.preventDefault();
         if (event.repeat) return;
@@ -200,6 +241,7 @@ export function Companion() {
     const scroll = () => { if (drag || keyboardDrag || dropping) finish(true); };
     const onDialog = (event: Event) => { dialog = (event as CustomEvent<boolean>).detail; sync(); };
     const onTheme = (event: Event) => {
+      if (secretAge !== null) { secretAge = null; delete pet.dataset.secret; }
       const { light: next, delay } = (event as CustomEvent<{ light: boolean; delay: number }>).detail;
       light = next;
       // Freeze activity timers rather than replacing the current pose, so sitting/walking resumes.
@@ -269,7 +311,7 @@ export function Companion() {
     };
   }, []);
 
-  return <div ref={stageRef} className={styles.stage} data-companion="pogo">
+  return <><div ref={stageRef} className={styles.stage} data-companion="pogo">
     <span className={styles.dot} aria-hidden="true" />
     <button ref={petRef} type="button" className={styles.pet} aria-label="Say hello to Pogo" aria-describedby="pogo-controls">
       <span className={styles.visual}>
@@ -294,8 +336,21 @@ export function Companion() {
           <path className={styles.glassesHand} fill="#92b8e1" d="M29 19V8h-2V1h6v6h3v12z" />
         </g>
       </svg>
+      <svg className={styles.secretProp} viewBox="0 0 96 64" aria-hidden="true" shapeRendering="crispEdges">
+        <g className={styles.redSwitch}>
+          <path fill="#292f36" d="M70 55h18v9H70z" />
+          <path fill="#4e5761" d="M68 53h22v4H68z" />
+          <path className={styles.switchCap} fill="#e74b4b" d="M72 46h14v7H72z" />
+          <path className={styles.switchCap} fill="#ff9290" d="M74 46h10v2H74z" />
+          <path className={styles.switchSpark} fill="#f4d5a3" d="M78 34h2v6h-2zM67 37h2v2h2v2h-2v-2h-2zM90 37h2v2h-2v2h-2v-2h2z" />
+        </g>
+        <g className={styles.switchArm}>
+          <path fill="#92b8e1" d="M58 44h8v-2h8v2h4v4h-4v2H58z" />
+          <path fill="#7da3ca" d="M58 48h14v2H58z" />
+        </g>
+      </svg>
       </span>
     </button>
-    <span id="pogo-controls" className="sr-only">Drag to move Pogo. Keyboard: Space to pick up, arrow keys to move, Enter or Escape to put down.</span>
-  </div>;
+    <span id="pogo-controls" className="sr-only">Drag to move Pogo. Keyboard: Space to pick up, arrow keys to move, Enter or Escape to put down. Shift+Enter opens Pogo’s little report.</span>
+  </div><PogoReport open={reportOpen} close={closeReport} /></>;
 }

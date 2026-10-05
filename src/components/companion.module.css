@@ -42,6 +42,20 @@
 .rightLeg { left:51.25%; transform:rotate(calc(-1 * var(--swing, 0deg))); }
 .dot { position:absolute; bottom:-2px; right:-2px; width:4px; height:4px; border-radius:50%; background:var(--muted); opacity:.5; transition:background .2s,box-shadow .2s; }
 .stage[data-touching=true] .dot { background:var(--blue); opacity:1; box-shadow:0 0 0 4px #8da7ff22; }
+.secretProp { display:none; position:absolute; top:0; left:0; width:120%; height:100%; overflow:visible; pointer-events:none; }
+.pet[data-secret] .secretProp { display:block; }
+.pet[data-secret-side=left] .secretProp { left:auto; right:0; transform:scaleX(-1); }
+.redSwitch { transform-origin:79px 64px; animation:switch-reveal 650ms steps(5,end) both; }
+.switchArm { opacity:0; transform-origin:60px 46px; transform:rotate(38deg); transition:transform 450ms steps(4,end),opacity 80ms; }
+.switchCap { transition:transform 180ms steps(2,end); }
+.pet:is([data-secret=reach],[data-secret=press]) .switchArm { opacity:1; transform:rotate(0deg); }
+.pet:is([data-secret=reach],[data-secret=press]) .sprite { clip-path:polygon(0 0,100% 0,100% 68%,74% 68%,74% 100%,0 100%); }
+.pet:is([data-secret=reach],[data-secret=press])[data-secret-side=left] .sprite { clip-path:polygon(0 0,100% 0,100% 100%,26% 100%,26% 68%,0 68%); }
+.pet[data-secret=press] .switchArm { transform:rotate(12deg); transition-duration:180ms; }
+.pet[data-secret=press] .switchCap { transform:translateY(4px); }
+.switchSpark { opacity:0; }
+.pet[data-secret=press] .switchSpark { opacity:1; }
+@keyframes switch-reveal { from { opacity:0; transform:translateY(6px) scale(.2); } to { opacity:1; transform:translateY(0) scale(1); } }
 @media (width < 640px) {
   .stage { top:-88px; height:88px; left:0; right:0; }
   .pet { width:60px; height:48px; }
