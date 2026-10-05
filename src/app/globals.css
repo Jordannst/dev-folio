@@ -158,3 +158,8 @@ body:has(:focus-visible) .bottom-blur { opacity:0; }.scroll-progress { position:
   .skill[data-expanded=true] .skill-label { position:absolute; top:calc(100% + 6px); left:0; z-index:5; width:max-content; max-width:160px; margin:0; padding:5px 8px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--foreground); box-shadow:0 3px 12px #0002; }
   .skill-row > [data-skill]:last-child .skill-label { left:auto; right:0; }
 }
+
+.project-preview { position:relative; display:block; width:100%; padding:0; overflow:hidden; aspect-ratio:16/9; border:1px solid var(--border); border-radius:14px; background:transparent; isolation:isolate; }
+.project-preview .project-image { border:0; border-radius:0; }
+.project-preview video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 120ms ease; pointer-events:none; }
+.project-preview[data-playing=true] video { opacity:1; }

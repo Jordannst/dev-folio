@@ -229,9 +229,10 @@ export const portfolio = {
         "TailwindCSS 4",
         "Supabase"
       ],
-      "image": "/images/klkinvoice.webp",
-      "imageWidth": 1002,
-      "imageHeight": 676,
+      "image": "/images/klk-showcase-first-frame.jpg",
+      "imageWidth": 1920,
+      "imageHeight": 1080,
+      "previewVideo": "/videos/klk-showcase-720p60.mp4",
       "links": [
         {
           "label": "Live",
@@ -245,7 +246,7 @@ export const portfolio = {
   ]
 };
 
-export type Project = (typeof portfolio.projects)[number];
+export type Project = (typeof portfolio.projects)[number] & { previewVideo?: string };
 export type Experience = (typeof portfolio.experience)[number];
 export type ProjectFilter = 'all' | 'ai' | 'business';
 export function filterProjects(filter: ProjectFilter, projects: Project[] = portfolio.projects): Project[] {
