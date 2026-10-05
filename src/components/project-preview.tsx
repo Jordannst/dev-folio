@@ -41,7 +41,7 @@ export function ProjectPreview({ src, poster, title, active }: { src: string; po
     // Warm only nearby desktop previews; touch/save-data users load on demand.
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) { setWarm(true); observer.disconnect(); }
-    }, { rootMargin: "160px" });
+    }, { rootMargin: "800px" });
     observer.observe(frame.current!);
     return () => observer.disconnect();
   }, [canAutoPlay]);
@@ -50,20 +50,51 @@ export function ProjectPreview({ src, poster, title, active }: { src: string; po
 
   useEffect(() => {
     const element = video.current!;
-    if (shouldPlay) {
-      void element.play().catch(() => setPlaying(false));
-    } else {
+    if (!shouldPlay) {
       element.pause();
       setPlaying(false);
       if (element.readyState > 0) element.currentTime = 0;
+      return;
     }
+
+    let cancelled = false;
+    let requested = false;
+    const startWhenBuffered = () => {
+      if (requested || element.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+      // Keep the poster visible until four seconds are buffered (or the whole short clip).
+      const target = Math.min(element.currentTime + 4, element.duration);
+      for (let index = 0; index < element.buffered.length; index++) {
+        if (element.buffered.start(index) <= element.currentTime && element.buffered.end(index) >= target - .05) {
+          requested = true;
+          void element.play().catch(() => { if (!cancelled) setPlaying(false); });
+          break;
+        }
+      }
+    };
+    const refillBuffer = () => {
+      // Avoid repeated stop/start playback when the connection falls behind.
+      // Preserve the last displayed frame while gathering another buffer window.
+      element.pause();
+      requested = false;
+      startWhenBuffered();
+    };
+    const events = ["progress", "loadeddata", "canplay", "durationchange"];
+    events.forEach(event => element.addEventListener(event, startWhenBuffered));
+    element.addEventListener("waiting", refillBuffer);
+    startWhenBuffered();
+    return () => {
+      cancelled = true;
+      events.forEach(event => element.removeEventListener(event, startWhenBuffered));
+      element.removeEventListener("waiting", refillBuffer);
+      element.pause();
+    };
   }, [shouldPlay]);
 
   return <button ref={frame} type="button" className="project-preview" data-playing={playing && shouldPlay}
     aria-label={`Video preview: ${title}`} aria-pressed={shouldPlay} disabled={failed} onClick={() => setManual(!shouldPlay)}>
     <Image className="project-image" src={poster} alt={`${title} application preview`} width={1920} height={1080} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 95vw" />
-    <video ref={video} src={warm || shouldPlay ? src : undefined} preload={shouldPlay ? "auto" : warm ? "metadata" : "none"}
+    <video ref={video} src={warm || shouldPlay ? src : undefined} preload={warm || shouldPlay ? "auto" : "none"}
       width={1280} height={720} muted loop playsInline disablePictureInPicture aria-hidden="true"
-      onPlaying={() => setPlaying(true)} onPause={() => setPlaying(false)} onError={() => setFailed(true)} />
+      onPlaying={() => setPlaying(true)} onError={() => setFailed(true)} />
   </button>;
 }
