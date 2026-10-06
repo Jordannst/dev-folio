@@ -200,9 +200,10 @@ export const portfolio = {
         "Prisma",
         "Socket.io"
       ],
-      "image": "/images/kassentix.webp",
-      "imageWidth": 844,
-      "imageHeight": 570,
+      "image": "/images/kassentix-showcase-first-frame.jpg",
+      "imageWidth": 1280,
+      "imageHeight": 720,
+      "previewVideo": "/videos/kassentix-showcase-720p60.mp4",
       "links": [
         {
           "label": "Live",

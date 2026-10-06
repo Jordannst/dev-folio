@@ -61,10 +61,11 @@ export function ProjectPreview({ src, poster, title, active }: { src: string; po
     let requested = false;
     const startWhenBuffered = () => {
       if (requested || element.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
-      // Keep the poster visible until four seconds are buffered (or the whole short clip).
+      // Mobile browsers may stop preloading early once they signal canplaythrough.
       const target = Math.min(element.currentTime + 4, element.duration);
+      const readyToStart = element.currentTime === 0 && element.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA;
       for (let index = 0; index < element.buffered.length; index++) {
-        if (element.buffered.start(index) <= element.currentTime && element.buffered.end(index) >= target - .05) {
+        if (element.buffered.start(index) <= element.currentTime && (readyToStart || element.buffered.end(index) >= target - .05)) {
           requested = true;
           void element.play().catch(() => { if (!cancelled) setPlaying(false); });
           break;
@@ -78,7 +79,7 @@ export function ProjectPreview({ src, poster, title, active }: { src: string; po
       requested = false;
       startWhenBuffered();
     };
-    const events = ["progress", "loadeddata", "canplay", "durationchange"];
+    const events = ["progress", "loadeddata", "canplay", "canplaythrough", "durationchange"];
     events.forEach(event => element.addEventListener(event, startWhenBuffered));
     element.addEventListener("waiting", refillBuffer);
     startWhenBuffered();
