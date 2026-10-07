@@ -174,9 +174,10 @@ export const portfolio = {
         "pgvector",
         "Gemini AI"
       ],
-      "image": "/images/rag-chatbot.webp",
-      "imageWidth": 938,
-      "imageHeight": 632,
+      "image": "/images/contextual-rag-showcase-first-frame.jpg",
+      "imageWidth": 1280,
+      "imageHeight": 720,
+      "previewVideo": "/videos/contextual-rag-showcase-720p60.mp4",
       "links": [
         {
           "label": "GitHub",
