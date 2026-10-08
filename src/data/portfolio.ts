@@ -162,6 +162,34 @@ export const portfolio = {
   ],
   "projects": [
     {
+      "slug": "siaga",
+      "title": "SIAGA",
+      "year": "2026",
+      "role": "Full Stack Developer & AI Integration",
+      "description": "A team-built civic reporting mobile app with map monitoring, government follow-up, and AI guidance. Won 3rd place at ProxoCoris 2026.",
+      "tags": [
+        "React Native",
+        "Expo",
+        "TypeScript",
+        "Express.js",
+        "Supabase",
+        "Gemini AI"
+      ],
+      "image": "/images/siaga-showcase-first-frame.jpg",
+      "imageWidth": 1280,
+      "imageHeight": 720,
+      "previewVideo": "/videos/siaga-showcase-720p60.mp4",
+      "links": [
+        {
+          "label": "GitHub",
+          "url": "https://github.com/orgs/StackHorizon-ProxoCoris/repositories"
+        }
+      ],
+      "categories": [
+        "ai"
+      ]
+    },
+    {
       "slug": "contextual-rag-chat",
       "title": "Contextual RAG Chat",
       "year": "2025",

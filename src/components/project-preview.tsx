@@ -38,7 +38,7 @@ export function ProjectPreview({ src, poster, title, active }: { src: string; po
 
   useEffect(() => {
     if (!canAutoPlay) return;
-    // Warm only nearby desktop previews; touch/save-data users load on demand.
+    // Warm only metadata nearby; full downloads compete with the active preview.
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) { setWarm(true); observer.disconnect(); }
     }, { rootMargin: "800px" });
@@ -94,7 +94,7 @@ export function ProjectPreview({ src, poster, title, active }: { src: string; po
   return <button ref={frame} type="button" className="project-preview" data-playing={playing && shouldPlay}
     aria-label={`Video preview: ${title}`} aria-pressed={shouldPlay} disabled={failed} onClick={() => setManual(!shouldPlay)}>
     <Image className="project-image" src={poster} alt={`${title} application preview`} width={1920} height={1080} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 95vw" />
-    <video ref={video} src={warm || shouldPlay ? src : undefined} preload={warm || shouldPlay ? "auto" : "none"}
+    <video ref={video} src={warm || shouldPlay ? src : undefined} preload={shouldPlay ? "auto" : warm ? "metadata" : "none"}
       width={1280} height={720} muted loop playsInline disablePictureInPicture aria-hidden="true"
       onPlaying={() => setPlaying(true)} onError={() => setFailed(true)} />
   </button>;
