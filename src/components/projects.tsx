@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { filterProjects, type Project, type ProjectFilter } from "@/data/portfolio";
 import { Icon } from "./icon";
 import { ProjectPreview } from "./project-preview";
@@ -28,7 +28,10 @@ export function Projects({ projects, preloadFirstImage = false }: { projects: Pr
 function ProjectCard({ project, preload }: { project: Project; preload: boolean }) {
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
-  return <article className="project-card" onPointerEnter={event => { if (event.pointerType !== "touch") setHovered(true); }}
+  const card = useRef<HTMLElement>(null);
+  // A pointer that entered before hydration never fires onPointerEnter.
+  useEffect(() => { if (card.current?.matches(":hover")) setHovered(true); }, []);
+  return <article ref={card} className="project-card" onPointerEnter={event => { if (event.pointerType !== "touch") setHovered(true); }}
     onPointerLeave={() => setHovered(false)} onFocusCapture={event => { if (event.target.matches(":focus-visible")) setFocused(true); }}
     onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
         {project.previewVideo ? <ProjectPreview src={project.previewVideo} poster={project.image} title={project.title} active={hovered || focused} /> :
