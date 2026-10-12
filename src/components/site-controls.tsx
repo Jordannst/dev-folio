@@ -80,8 +80,11 @@ export function SiteControls() {
     style.setProperty("--theme-y", `${y}px`);
     // Extend the soft mask beyond the farthest corner so the final frame is fully covered.
     style.setProperty("--theme-diameter", `${3 * Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))}px`);
-    themeTransition.current = document.startViewTransition(apply);
-    void themeTransition.current.ready.catch(() => { /* A newer toggle can skip this animation. */ });
+    // Scope the circular reveal to theme changes; page navigations also use view transitions.
+    document.documentElement.classList.add("theme-transition");
+    const transition = themeTransition.current = document.startViewTransition(apply);
+    void transition.ready.catch(() => { /* A newer toggle can skip this animation. */ });
+    void transition.finished.finally(() => { if (themeTransition.current === transition) document.documentElement.classList.remove("theme-transition"); });
   }
   return <><div className="bottom-blur" aria-hidden="true"><div /><div /><div /><div /><div /></div><div className="scroll-progress" ref={progress} aria-hidden="true" /><div className="floating-controls"><button className="back-top-control" onClick={backToTop} aria-label="Back to top" title="Back to top"><Icon name="up" /></button><button className="theme-control" data-dark={dark} onClick={toggleTheme} aria-label={`Switch to ${dark ? "light" : "dark"} theme`} title={`Switch to ${dark ? "light" : "dark"} theme`}><Icon name={dark ? "moon" : "sun"} /></button><a href={`mailto:${portfolio.profile.email}`} aria-label="Email Jordan" title="Email Jordan"><Icon name="mail" /></a></div></>;
 }
