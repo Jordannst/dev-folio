@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import { getGitHubActivity } from "@/lib/github";
 import { Icon } from "./icon";
 import { ContributionTooltip } from "./contribution-tooltip";
+import { CountUp } from "./count-up";
 
 const dayFormatter = new Intl.DateTimeFormat("en", { day:"numeric", month:"short", year:"numeric", timeZone:"UTC" });
 const monthFormatter = new Intl.DateTimeFormat("en", { month:"short", timeZone:"UTC" });
@@ -12,7 +13,7 @@ export async function GitHubActivity() {
   const activity = await getGitHubActivity();
   return <div className="github-activity">
     {activity.status === "unavailable" ? <p className="muted">GitHub activity is temporarily unavailable.</p> : <>
-      <p className="calendar-summary"><strong>{activity.calendar.total.toLocaleString("en")}</strong> contributions · {dateLabel(activity.from)} – {dateLabel(activity.to)}</p>
+      <p className="calendar-summary"><strong><CountUp value={activity.calendar.total} /></strong> contributions · {dateLabel(activity.from)} – {dateLabel(activity.to)}</p>
       <ContributionTooltip>
         <div className="calendar-weeks">{activity.calendar.weeks.map((week, index, weeks) => {
           const month = week[0].date.slice(0,7);

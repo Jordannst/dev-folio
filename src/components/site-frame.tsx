@@ -1,11 +1,12 @@
+import { Fragment } from "react";
 import { portfolio } from "@/data/portfolio";
 import { Icon } from "./icon";
 import { Leaf } from "./leaf";
 
 export { Leaf };
 
-export function SectionHeading({ id, children }: { id: string; children: React.ReactNode }) {
-  return <div className="section-heading cross-line"><h2 id={id} tabIndex={-1}>{children}</h2></div>;
+export function SectionHeading({ id, children }: { id: string; children: string }) {
+  return <div className="section-heading cross-line"><h2 id={id} tabIndex={-1}>{children.split(" ").map((word, index) => <Fragment key={index}>{index > 0 && " "}<span className="heading-word" style={{ "--i": index } as React.CSSProperties}>{word}</span></Fragment>)}</h2></div>;
 }
 
 export function Footer() {
