@@ -114,6 +114,10 @@ h1,h2,h3,p { margin:0; }.muted { color:var(--muted); }
 @keyframes leaf-unfold { from { opacity:0; transform:rotate(-14deg) scale(.04); } to { opacity:1; transform:rotate(0) scale(1); } }
 @keyframes leaf-sway { 0%,100% { transform:rotate(0); } 35% { transform:rotate(1.5deg); } 70% { transform:rotate(-1deg); } }
 .heading-word { display:inline-block; }
+/* Cursor-reactive dot field: full-width band behind the hero, faded at its edges; hidden with the rails on mobile. */
+.hero { position:relative; }
+.hero-dots { position:absolute; z-index:-1; left:-25vw; width:100vw; top:-168px; bottom:-48px; height:auto; color:var(--grid); pointer-events:none; mask-image:linear-gradient(to bottom,transparent,#000 22%,#000 70%,transparent); }
+@media (width < 640px) { .hero-dots { display:none; } }
 @media (prefers-reduced-motion:no-preference) {
   [data-reveal=pending] .heading-word { opacity:0; filter:blur(6px); transform:translateY(6px); }
   [data-reveal=pending] :is(.experience-row,.skill-list,.project-tabs,.project-card,.see-more,.github-activity) { opacity:0; transform:translateY(12px); }
