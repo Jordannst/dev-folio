@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
 import { flushSync } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import Lenis from "lenis";
@@ -35,6 +35,11 @@ export function SiteControls() {
     sync(); scroll(); motion.addEventListener("change", sync); document.addEventListener("portfolio:dialog", dialog); window.addEventListener("scroll", scroll, { passive: true }); window.addEventListener("resize", scroll);
     return () => { lenis.current?.destroy(); motion.removeEventListener("change", sync); document.removeEventListener("portfolio:dialog", dialog); window.removeEventListener("scroll", scroll); window.removeEventListener("resize", scroll); };
   }, []);
+  // Lenis outlives route changes: drop an in-flight smooth scroll before its next frame drags the new page toward the old target.
+  useLayoutEffect(() => {
+    lenis.current?.stop();
+    if (!document.querySelector('[role="dialog"]')) lenis.current?.start();
+  }, [pathname]);
   useEffect(() => {
     function focusDestination(id: string) {
       const heading = document.getElementById(id); if (!heading) return;
