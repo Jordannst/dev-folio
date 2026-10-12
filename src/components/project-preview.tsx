@@ -7,7 +7,6 @@ export function ProjectPreview({ src, poster, title, active }: { src: string; po
   const frame = useRef<HTMLButtonElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const [canAutoPlay, setCanAutoPlay] = useState(false);
-  const [warm, setWarm] = useState(false);
   const [visible, setVisible] = useState(false);
   const [pageVisible, setPageVisible] = useState(true);
   const [manual, setManual] = useState<boolean | null>(null);
@@ -36,16 +35,6 @@ export function ProjectPreview({ src, poster, title, active }: { src: string; po
     };
   }, []);
 
-  useEffect(() => {
-    if (!canAutoPlay) return;
-    // Warm only metadata nearby; full downloads compete with the active preview.
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setWarm(true); observer.disconnect(); }
-    }, { rootMargin: "800px" });
-    observer.observe(frame.current!);
-    return () => observer.disconnect();
-  }, [canAutoPlay]);
-
   useEffect(() => { if (!active) setManual(null); }, [active]);
 
   useEffect(() => {
@@ -53,7 +42,10 @@ export function ProjectPreview({ src, poster, title, active }: { src: string; po
     if (!shouldPlay) {
       element.pause();
       setPlaying(false);
-      if (element.readyState > 0) element.currentTime = 0;
+      // Video bytes only flow while a preview is active. Over HTTP/2 an idle open-ended range request
+      // keeps streaming the whole file and queues navigation responses behind it on slow links.
+      // src is already removed here, so load() aborts that request and rewinds to the first frame.
+      if (element.networkState !== HTMLMediaElement.NETWORK_EMPTY) element.load();
       return;
     }
 
@@ -94,7 +86,7 @@ export function ProjectPreview({ src, poster, title, active }: { src: string; po
   return <button ref={frame} type="button" className="project-preview" data-playing={playing && shouldPlay}
     aria-label={`Video preview: ${title}`} aria-pressed={shouldPlay} disabled={failed} onClick={() => setManual(!shouldPlay)}>
     <Image className="project-image" src={poster} alt={`${title} application preview`} width={1920} height={1080} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 95vw" />
-    <video ref={video} src={warm || shouldPlay ? src : undefined} preload={shouldPlay ? "auto" : warm ? "metadata" : "none"}
+    <video ref={video} src={shouldPlay ? src : undefined} preload={shouldPlay ? "auto" : "none"}
       width={1280} height={720} muted loop playsInline disablePictureInPicture aria-hidden="true"
       onPlaying={() => setPlaying(true)} onError={() => setFailed(true)} />
   </button>;
