@@ -3,77 +3,41 @@
 import { useEffect, useRef } from "react";
 
 const GAP = 14, RADIUS = 120, PUSH = 18, STIFFNESS = .12, DAMPING = .78;
-// Intro: a wave spreads from the avatar; each dot fades in over FADE ms, SPEED ms per px of distance.
-// Progress is drawn in LEVELS batches so a frame changes canvas state a handful of times, not per dot.
-const FADE = 350, SPEED = .55, LEVELS = 6, INTRO_KEY = "hero-dots-intro";
+const GREEN = [166, 201, 169], BLUE = [141, 167, 255];
 
-type Dot = { x: number; y: number; dx: number; dy: number; vx: number; vy: number; delay: number; done: boolean };
+type Dot = { x: number; y: number; dx: number; dy: number; vx: number; vy: number };
 
 export function HeroDots() {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const canvas = ref.current!, context = canvas.getContext("2d")!, settled = document.createElement("canvas").getContext("2d")!;
+    const canvas = ref.current!, context = canvas.getContext("2d")!;
     const live = matchMedia("(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)");
-    const motion = matchMedia("(prefers-reduced-motion: no-preference)");
     let dots: Dot[] = [], width = 0, rest = "", frame = 0, visible = true;
-    let intro: number | null = null, introLength = 0, introChecked = false;
-    let leaf: CanvasGradient | string = "";
     const pointer = { x: -1e4, y: -1e4 };
-    const levels: Dot[][] = Array.from({ length: LEVELS }, () => []);
 
     const draw = () => {
-      let elapsed = Infinity;
-      if (intro !== null) {
-        elapsed = performance.now() - intro;
-        // Mark the intro as seen only once it has fully played (StrictMode remounts would otherwise skip it).
-        if (elapsed >= introLength) { intro = null; elapsed = Infinity; try { sessionStorage.setItem(INTRO_KEY, "1"); } catch { /* replays next load */ } }
-      }
       context.clearRect(0, 0, width, canvas.height);
-      for (const level of levels) level.length = 0;
-      if (intro !== null) {
-        // During the intro, finished dots are stamped once into a cache and blitted, so each frame
-        // rasterises only the wavefront ring instead of every dot.
-        settled.fillStyle = rest; settled.globalAlpha = .5;
-        for (const dot of dots) {
-          if (dot.done) continue;
-          const progress = (elapsed - dot.delay) / FADE;
-          if (progress >= 1 && dot.dx === 0 && dot.dy === 0) { dot.done = true; settled.fillRect(dot.x - .6, dot.y - .6, 1.2, 1.2); }
-          else if (progress > 0 && dot.dx === 0 && dot.dy === 0) levels[Math.floor(progress * LEVELS)].push(dot);
-        }
-        context.drawImage(settled.canvas, 0, 0, width, canvas.height / (devicePixelRatio || 1));
-      } else {
-        // Resting dots stay quieter than the rails; displaced dots draw at full strength.
-        context.fillStyle = rest;
-        context.globalAlpha = .5;
-        for (const dot of dots) if (dot.dx === 0 && dot.dy === 0) context.fillRect(dot.x - .6, dot.y - .6, 1.2, 1.2);
-      }
-      // Wavefront: dots fade in at their resting colour while a leaf-coloured flash shrinks away.
-      levels.forEach((level, index) => {
-        if (!level.length) return;
-        const progress = (index + .5) / LEVELS, size = 1.2 + (1 - progress) * 1.2;
-        context.fillStyle = rest; context.globalAlpha = .5 * progress;
-        for (const dot of level) context.fillRect(dot.x - .6, dot.y - .6, 1.2, 1.2);
-        context.fillStyle = leaf; context.globalAlpha = 1 - progress;
-        for (const dot of level) context.fillRect(dot.x - size / 2, dot.y - size / 2, size, size);
-      });
-      // Displaced dots pick up the leaf gradient across the viewport width.
-      context.fillStyle = leaf;
+      // Resting dots stay quieter than the rails; displaced dots draw at full strength.
+      context.fillStyle = rest;
+      context.globalAlpha = .5;
+      for (const dot of dots) if (dot.dx === 0 && dot.dy === 0) context.fillRect(dot.x - .6, dot.y - .6, 1.2, 1.2);
+      context.globalAlpha = 1;
       for (const dot of dots) {
         if (dot.dx === 0 && dot.dy === 0) continue;
-        context.globalAlpha = .45 + .55 * Math.min(1, Math.hypot(dot.dx, dot.dy) / PUSH);
+        // Displaced dots pick up the leaf gradient across the viewport width.
+        const t = dot.x / width, strength = Math.min(1, Math.hypot(dot.dx, dot.dy) / PUSH);
+        const [r, g, b] = GREEN.map((channel, index) => Math.round(channel + (BLUE[index] - channel) * t));
+        context.fillStyle = `rgba(${r},${g},${b},${.45 + .55 * strength})`;
         context.fillRect(dot.x + dot.dx - .9, dot.y + dot.dy - .9, 1.8, 1.8);
       }
-      context.globalAlpha = 1;
     };
 
     const step = () => {
-      let moving = intro !== null;
+      let moving = false;
       for (const dot of dots) {
-        const distanceX = dot.x - pointer.x, distanceY = dot.y - pointer.y;
-        // Cheap reject: resting dots outside the cursor radius need no physics this frame.
-        if (dot.dx === 0 && dot.dy === 0 && distanceX * distanceX + distanceY * distanceY >= RADIUS * RADIUS) continue;
-        const distance = Math.hypot(distanceX, distanceY);
+        const distanceX = dot.x - pointer.x, distanceY = dot.y - pointer.y, distance = Math.hypot(distanceX, distanceY);
+        if (distance >= RADIUS && dot.dx === 0 && dot.dy === 0) continue;
         // Quadratic falloff: strongest push under the cursor, none at the radius edge.
         const force = distance < RADIUS && distance > 0 ? (1 - distance / RADIUS) ** 2 * PUSH : 0;
         const targetX = force ? distanceX / distance * force : 0, targetY = force ? distanceY / distance * force : 0;
@@ -94,28 +58,9 @@ export function HeroDots() {
       width = rect.width;
       canvas.width = Math.round(rect.width * ratio); canvas.height = Math.round(rect.height * ratio);
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      settled.canvas.width = canvas.width; settled.canvas.height = canvas.height;
-      settled.setTransform(ratio, 0, 0, ratio, 0, 0);
-      const gradient = context.createLinearGradient(0, 0, rect.width, 0);
-      gradient.addColorStop(0, "#a6c9a9"); gradient.addColorStop(1, "#8da7ff");
-      leaf = gradient;
-      const avatar = canvas.parentElement?.querySelector(".avatar-frame")?.getBoundingClientRect();
-      const originX = avatar ? avatar.left + avatar.width / 2 - rect.left : rect.width / 2;
-      const originY = avatar ? avatar.top + avatar.height / 2 - rect.top : rect.height / 2;
-      dots = []; introLength = 0;
-      for (let y = GAP / 2; y < rect.height; y += GAP) for (let x = GAP / 2; x < rect.width; x += GAP) {
-        const delay = Math.hypot(x - originX, y - originY) * SPEED;
-        introLength = Math.max(introLength, delay + FADE);
-        dots.push({ x, y, dx: 0, dy: 0, vx: 0, vy: 0, delay, done: false });
-      }
+      dots = [];
+      for (let y = GAP / 2; y < rect.height; y += GAP) for (let x = GAP / 2; x < rect.width; x += GAP) dots.push({ x, y, dx: 0, dy: 0, vx: 0, vy: 0 });
       rest = getComputedStyle(canvas).color;
-      // First layout only: play the intro once per session, never with reduced motion or on later resizes.
-      if (!introChecked) {
-        introChecked = true;
-        let seen = false;
-        try { seen = !!sessionStorage.getItem(INTRO_KEY); } catch { /* storage blocked: play */ }
-        if (motion.matches && !seen) { intro = performance.now(); frame ||= requestAnimationFrame(step); }
-      }
       draw();
     };
     const client = { x: -1e4, y: -1e4 };
