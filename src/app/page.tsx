@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { GitHubActivity } from "@/components/github-activity";
 import Link from "next/link";
@@ -15,9 +16,28 @@ import { HanddrawnRole } from "@/components/handdrawn-role";
 import { Reveal } from "@/components/reveal";
 import { HeroDots } from "@/components/hero-dots";
 import { PageTransition } from "@/components/page-transition";
+import { siteUrl } from "@/lib/seo";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  url: `${siteUrl}/`,
+  mainEntity: {
+    "@type": "Person",
+    name: portfolio.profile.name,
+    alternateName: portfolio.profile.githubUsername,
+    url: `${siteUrl}/`,
+    image: new URL(portfolio.profile.avatar, siteUrl).href,
+    description: portfolio.profile.bio,
+    sameAs: portfolio.socials.map(social => social.url),
+  },
+};
 
 export default function HomePage() {
   return <PageTransition><main id="main" className="site-shell">
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
     <Companion />
     <Leaf className="hero-leaf" />
     <header className="hero"><HeroDots /><div className="hero-intro cross-line">
@@ -28,7 +48,7 @@ export default function HomePage() {
     <div className="socials"><p>Here are my <strong>socials</strong></p><SocialLinks socials={portfolio.socials} profile={portfolio.profile} /></div></header>
     <Reveal className="experience-section" aria-labelledby="experience"><SectionHeading id="experience">Experience</SectionHeading><Experience items={portfolio.experience} /></Reveal>
     <Reveal className="skills-section" aria-labelledby="skills"><Leaf className="skills-bud" variant="bud" /><SectionHeading id="skills">Skills</SectionHeading><SkillList skills={portfolio.skills} /></Reveal>
-    <Reveal className="projects-section wide-mobile" aria-labelledby="projects"><SectionHeading id="projects">Projects</SectionHeading><Projects projects={portfolio.projects} /><div className="see-more"><Link href="/projects" className="see-more-button" transitionTypes={["nav-forward"]}>SEE MORE</Link></div></Reveal>
+    <Reveal className="projects-section wide-mobile" aria-labelledby="projects"><SectionHeading id="projects">Projects</SectionHeading><Projects projects={portfolio.projects} /><div className="see-more"><Link href="/projects" className="see-more-button" transitionTypes={["nav-forward"]}>SEE MORE<span className="sr-only"> PROJECTS</span></Link></div></Reveal>
     <Reveal className="github-section" aria-labelledby="github"><SectionHeading id="github">GitHub Activity</SectionHeading><Suspense fallback={<p role="status" className="muted">Loading GitHub activity…</p>}><GitHubActivity /></Suspense></Reveal>
     <Footer />
   </main></PageTransition>;

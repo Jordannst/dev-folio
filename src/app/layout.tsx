@@ -4,6 +4,8 @@ import "./globals.css";
 import "lenis/dist/lenis.css";
 import { SiteControls } from "@/components/site-controls";
 import { Analytics } from "@vercel/analytics/next";
+import { portfolio } from "@/data/portfolio";
+import { siteUrl, socialPreview } from "@/lib/seo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -18,9 +20,16 @@ const instrumentSerif = Instrument_Serif({
   display: "swap",
 });
 
+const title = `${socialPreview.siteName} | Full Stack Developer & AI`;
+const description = "Jordan Sutarto (Jordannst), a fullstack developer and AI enthusiast in Indonesia. Explore web and mobile projects, experience, and skills.";
+
 export const metadata: Metadata = {
-  title: "Jordannst | Full Stack Developer & AI",
-  description: "Fullstack Developer and AI enthusiast based in Indonesia.",
+  metadataBase: new URL(siteUrl),
+  title: { default: title, template: `%s | ${socialPreview.siteName}` },
+  description,
+  authors: [{ name: portfolio.profile.name, url: siteUrl }],
+  openGraph: { ...socialPreview, title, description, url: "/" },
+  twitter: { card: "summary" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
