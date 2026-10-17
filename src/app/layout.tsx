@@ -21,7 +21,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 const title = `${socialPreview.siteName} | Full Stack Developer & AI`;
-const description = "Jordan Sutarto (Jordannst), a fullstack developer and AI enthusiast in Indonesia. Explore web and mobile projects, experience, and skills.";
+const description = "Jordan Sutarto (Jordannst), a full stack developer in Indonesia building web applications with Next.js, Laravel, and practical AI integrations.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

@@ -6,7 +6,7 @@ export const portfolio = {
     "location": "Indonesia",
     "email": "jordannst.08@gmail.com",
     "avatar": "/images/jordan-profile.webp",
-    "bio": "I'm a Fullstack Developer, AI enthusiast, and fourth-year Computer Science student based in Indonesia. I build practical web applications and thoughtful user interfaces, turning ideas into useful digital experiences.",
+    "bio": "I'm a Fullstack Developer, AI enthusiast, and fourth-year Computer Science student based in Indonesia. I build web apps with Next.js and Laravel, and integrate AI into document chat and business tools.",
     "githubUsername": "Jordannst"
   },
   "socials": [
@@ -166,7 +166,7 @@ export const portfolio = {
       "title": "SIAGA",
       "year": "2026",
       "role": "Full Stack Developer & AI Integration",
-      "description": "A team-built civic reporting mobile app with map monitoring, government follow-up, and AI guidance. Won 3rd place at ProxoCoris 2026.",
+      "description": "A team-built civic reporting mobile app with location-based reports, government follow-up, and AI safety guidance. Won 3rd place at ProxoCoris 2026.",
       "tags": [
         "React Native",
         "Expo",
@@ -194,7 +194,7 @@ export const portfolio = {
       "title": "Contextual RAG Chat",
       "year": "2025",
       "role": "Full Stack Developer",
-      "description": "A document chat application with hybrid search and AI-powered analysis, including CSV and Excel analytics with chart visualization.",
+      "description": "An AI document chatbot using retrieval-augmented generation (RAG), vector and full-text search, plus CSV/Excel analysis and charts.",
       "tags": [
         "Next.js",
         "Go",
@@ -221,7 +221,7 @@ export const portfolio = {
       "title": "Kassentix POS",
       "year": "2025",
       "role": "Full Stack Developer",
-      "description": "A cloud-based point of sale platform for Indonesian small businesses, with AI analytics, inventory synchronization, and multi-outlet management.",
+      "description": "A cloud-based point-of-sale (POS) system for Indonesian small businesses, with AI analytics, real-time inventory sync, and multi-outlet management.",
       "tags": [
         "Next.js 15",
         "TypeScript",
@@ -249,7 +249,7 @@ export const portfolio = {
       "title": "KLK Invoice Management System",
       "year": "2026",
       "role": "Full Stack Developer",
-      "description": "An invoice management application for logistics businesses, with transaction tracking, digital signatures, PDF export, and recoverable deletion.",
+      "description": "An invoice management system for logistics businesses, with invoice grouping, transaction tracking, digital signatures, and PDF export.",
       "tags": [
         "Next.js 16",
         "TypeScript",
