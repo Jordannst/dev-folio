@@ -34,7 +34,7 @@ function ProjectCard({ project, preload }: { project: Project; preload: boolean 
   return <article ref={card} className="project-card" onPointerEnter={event => { if (event.pointerType !== "touch") setHovered(true); }}
     onPointerLeave={() => setHovered(false)} onFocusCapture={event => { if (event.target.matches(":focus-visible")) setFocused(true); }}
     onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
-        <ViewTransition name={`project-${project.slug}`} share="morph" default="none">{project.previewVideo ? <ProjectPreview src={project.previewVideo} poster={project.image} title={project.title} active={hovered || focused} /> :
+        <ViewTransition name={`project-${project.slug}`} share="morph" default="none">{project.previewVideo ? <ProjectPreview src={project.previewVideo} poster={project.image} title={project.title} active={hovered || focused} preload={preload} /> :
           <Image className="project-image" src={project.image} alt={`${project.title} application preview`} width={project.imageWidth} height={project.imageHeight} preload={preload} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 95vw" />}</ViewTransition>
         <div className="project-title"><h3>{project.title}</h3><time>{project.year}</time></div>
         <p>{project.description}</p>

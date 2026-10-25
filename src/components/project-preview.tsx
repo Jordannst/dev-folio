@@ -64,7 +64,7 @@ function attach(element: HTMLVideoElement, src: string, feed: Feed) {
   }, { once: true });
 }
 
-export function ProjectPreview({ src, poster, title, active }: { src: string; poster: string; title: string; active: boolean }) {
+export function ProjectPreview({ src, poster, title, active, preload = false }: { src: string; poster: string; title: string; active: boolean; preload?: boolean }) {
   const frame = useRef<HTMLButtonElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const [canAutoPlay, setCanAutoPlay] = useState(false);
@@ -123,7 +123,7 @@ export function ProjectPreview({ src, poster, title, active }: { src: string; po
 
   return <button ref={frame} type="button" className="project-preview" data-playing={playing && shouldPlay}
     aria-label={`Video preview: ${title}`} aria-pressed={shouldPlay} disabled={failed} onClick={() => setManual(!shouldPlay)}>
-    <Image className="project-image" src={poster} alt={`${title} application preview`} width={1920} height={1080} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 95vw" />
+    <Image className="project-image" src={poster} alt={`${title} application preview`} width={1920} height={1080} preload={preload} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 95vw" />
     <video ref={video} preload="none"
       width={1280} height={720} muted loop playsInline disablePictureInPicture aria-hidden="true"
       onPlaying={event => setPlaying(!event.currentTarget.paused)} onError={() => setFailed(true)} />
