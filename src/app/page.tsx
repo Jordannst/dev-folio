@@ -19,6 +19,8 @@ import { PageTransition } from "@/components/page-transition";
 import { siteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
+// Static HTML from the CDN, regenerated on the GitHub calendar's own 6-hour cache cadence (src/lib/github.ts).
+export const revalidate = 21600;
 
 const structuredData = {
   "@context": "https://schema.org",
