@@ -65,27 +65,32 @@ function attach(element: HTMLVideoElement, src: string, feed: Feed) {
 }
 
 export function ProjectPreview({ src, poster, title, active, preload = false }: { src: string; poster: string; title: string; active: boolean; preload?: boolean }) {
-  const frame = useRef<HTMLDivElement>(null);
+  const frame = useRef<HTMLButtonElement>(null);
   const video = useRef<HTMLVideoElement>(null);
+  const [hoverable, setHoverable] = useState(false);
   const [canAutoPlay, setCanAutoPlay] = useState(false);
   const [visible, setVisible] = useState(false);
   const [pageVisible, setPageVisible] = useState(true);
+  const [manual, setManual] = useState<boolean | null>(null);
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
   const feed = useRef<Feed>({ next: 0, size: Infinity, active: false, running: false, closed: false });
-  // Hover (or keyboard focus inside the card) is the only trigger; clicking the preview does nothing.
-  const shouldPlay = !failed && visible && pageVisible && active && canAutoPlay;
+  // Mouse devices play on hover only and ignore clicks; touch screens have no hover, so a tap toggles.
+  const shouldPlay = !failed && visible && pageVisible && (hoverable ? active && canAutoPlay : manual ?? false);
 
   useEffect(() => {
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const pointer = matchMedia("(hover: hover) and (pointer: fine)");
     const connection = (navigator as Navigator & { connection?: { saveData: boolean } }).connection;
-    const policy = () => setCanAutoPlay(!reduced.matches && pointer.matches && !connection?.saveData);
-    const visibility = () => setPageVisible(!document.hidden);
+    const policy = () => { setHoverable(pointer.matches); setCanAutoPlay(!reduced.matches && pointer.matches && !connection?.saveData); };
+    const visibility = () => { setPageVisible(!document.hidden); if (document.hidden) setManual(null); };
     policy(); visibility();
     reduced.addEventListener("change", policy); pointer.addEventListener("change", policy);
     document.addEventListener("visibilitychange", visibility);
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: .1 });
+    const observer = new IntersectionObserver(([entry]) => {
+      setVisible(entry.isIntersecting);
+      if (!entry.isIntersecting) setManual(null);
+    }, { threshold: .1 });
     observer.observe(frame.current!);
     const current = feed.current;
     current.closed = false;
@@ -116,10 +121,12 @@ export function ProjectPreview({ src, poster, title, active, preload = false }: 
     return () => element.pause();
   }, [shouldPlay, src]);
 
-  return <div ref={frame} className="project-preview" data-playing={playing && shouldPlay}>
+  return <button ref={frame} type="button" className="project-preview" data-playing={playing && shouldPlay}
+    aria-label={`Video preview: ${title}`} aria-pressed={hoverable ? undefined : shouldPlay} disabled={failed}
+    tabIndex={hoverable ? -1 : undefined} onClick={hoverable ? undefined : () => setManual(!shouldPlay)}>
     <Image className="project-image" src={poster} alt={`${title} application preview`} width={1920} height={1080} preload={preload} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 95vw" />
     <video ref={video} preload="none"
       width={1280} height={720} muted loop playsInline disablePictureInPicture aria-hidden="true"
       onPlaying={event => setPlaying(!event.currentTarget.paused)} onError={() => setFailed(true)} />
-  </div>;
+  </button>;
 }
