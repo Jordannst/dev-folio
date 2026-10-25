@@ -1,4 +1,3 @@
-import { connection } from "next/server";
 import { getGitHubActivity } from "@/lib/github";
 import { Icon } from "./icon";
 import { ContributionTooltip } from "./contribution-tooltip";
@@ -9,7 +8,6 @@ const monthFormatter = new Intl.DateTimeFormat("en", { month:"short", timeZone:"
 const dateLabel = (value: string) => dayFormatter.format(new Date(value));
 
 export async function GitHubActivity() {
-  await connection();
   const activity = await getGitHubActivity();
   return <div className="github-activity">
     {activity.status === "unavailable" ? <p className="muted">GitHub activity is temporarily unavailable.</p> : <>
