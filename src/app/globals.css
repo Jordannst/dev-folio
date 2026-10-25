@@ -127,13 +127,8 @@ h1,h2,h3,p { margin:0; }.muted { color:var(--muted); }
   [data-reveal=shown] :is(.experience-row,.project-card):nth-child(3) { transition-delay:340ms; }
   [data-reveal=shown] :is(.experience-row,.project-card):nth-child(n+4) { transition-delay:420ms; }
 }
-.bottom-blur { height:80px; position:fixed; bottom:0; left:0; right:0; z-index:20; pointer-events:none; isolation:isolate; }
-.bottom-blur > div { position:absolute; inset:0; }
-.bottom-blur > div:nth-child(1) { backdrop-filter:blur(4px); mask-image:linear-gradient(transparent 0%,#000 20%,#000 40%,transparent 60%); }
-.bottom-blur > div:nth-child(2) { backdrop-filter:blur(6px); mask-image:linear-gradient(transparent 20%,#000 40%,#000 60%,transparent 80%); }
-.bottom-blur > div:nth-child(3) { backdrop-filter:blur(8px); mask-image:linear-gradient(transparent 40%,#000 60%,#000 80%,transparent 100%); }
-.bottom-blur > div:nth-child(4) { backdrop-filter:blur(10px); mask-image:linear-gradient(transparent 60%,#000 80%,#000 100%); }
-.bottom-blur > div:nth-child(5) { backdrop-filter:blur(12px); mask-image:linear-gradient(transparent 80%,#000 100%); }
+/* One backdrop layer: five stacked blurs re-rendered on every scroll and video frame and made hover previews drop frames. */
+.bottom-blur { height:80px; position:fixed; bottom:0; left:0; right:0; z-index:20; pointer-events:none; backdrop-filter:blur(10px); mask-image:linear-gradient(transparent,#000 25%); }
 body:has(:focus-visible) .bottom-blur { opacity:0; }.scroll-progress { position:fixed; bottom:0; height:2px; left:0; width:100%; transform:scaleX(0); transform-origin:left; background:linear-gradient(90deg,#a6c9a9,#8da7ff); z-index:22; pointer-events:none; }
 .theme-transition::view-transition-group(root) { animation-timing-function:cubic-bezier(.19,1,.22,1); }
 .theme-transition::view-transition-old(root) { animation:none; z-index:-1; }
