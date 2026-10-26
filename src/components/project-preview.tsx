@@ -9,7 +9,10 @@ import { useEffect, useRef, useState } from "react";
 // (dad61c4), so the next preview queued behind ~1 MB on Slow 4G. Media Source only takes fragmented
 // MP4: remux new files with `ffmpeg -i in.mp4 -c copy -movflags +frag_keyframe+empty_moov+default_base_moof
 // -frag_duration 500000`, so the first 128 KB chunk already holds playable frames.
+// Fetching also waits while AHEAD seconds sit buffered past the playhead and resumes on timeupdate, so a
+// short hover over a full-length showcase costs about what a 10 s loop clip did instead of the whole file.
 const CHUNK = 128 * 1024;
+const AHEAD = 8;
 const TYPE = 'video/mp4; codecs="avc1.640032"';
 type Feed = { next: number; size: number; active: boolean; running: boolean; closed: boolean; source?: MediaSource; buffer?: SourceBuffer };
 
@@ -18,6 +21,8 @@ const request = (src: string, feed: Feed) => {
   feed.next += CHUNK;
   return fetch(src, { headers: { Range: `bytes=${start}-${feed.next - 1}` } });
 };
+
+const ahead = ({ buffered, currentTime }: HTMLVideoElement) => buffered.length ? buffered.end(buffered.length - 1) - currentTime : 0;
 
 const append = (buffer: SourceBuffer, data: BufferSource) => new Promise((resolve, reject) => {
   buffer.addEventListener("updateend", resolve, { once: true });
@@ -29,7 +34,7 @@ async function pump(element: HTMLVideoElement, src: string, feed: Feed) {
   const buffer = feed.buffer;
   if (feed.running || !buffer) return;
   feed.running = true;
-  const wanted = () => feed.active && feed.next < feed.size;
+  const wanted = () => feed.active && feed.next < feed.size && ahead(element) < AHEAD;
   try {
     let pending = wanted() ? request(src, feed) : null;
     while (pending) {
@@ -127,6 +132,7 @@ export function ProjectPreview({ src, poster, title, active, preload = false }: 
     <Image className="project-image" src={poster} alt={`${title} application preview`} width={1920} height={1080} preload={preload} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 95vw" />
     <video ref={video} preload="none"
       width={1280} height={720} muted loop playsInline disablePictureInPicture aria-hidden="true"
-      onPlaying={event => setPlaying(!event.currentTarget.paused)} onError={() => setFailed(true)} />
+      onPlaying={event => setPlaying(!event.currentTarget.paused)} onError={() => setFailed(true)}
+      onTimeUpdate={event => { if (feed.current.active) void pump(event.currentTarget, src, feed.current); }} />
   </button>;
 }
