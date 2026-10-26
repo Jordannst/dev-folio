@@ -178,7 +178,7 @@ export const portfolio = {
       "image": "/images/siaga-showcase-first-frame.jpg",
       "imageWidth": 1280,
       "imageHeight": 720,
-      "previewVideo": "/videos/siaga-showcase-loop-720p60.mp4",
+      "previewVideo": "/videos/siaga-showcase-720p60.mp4",
       "links": [
         {
           "label": "GitHub",
@@ -205,7 +205,7 @@ export const portfolio = {
       "image": "/images/contextual-rag-showcase-first-frame.jpg",
       "imageWidth": 1280,
       "imageHeight": 720,
-      "previewVideo": "/videos/contextual-rag-showcase-loop-720p60.mp4",
+      "previewVideo": "/videos/contextual-rag-showcase-720p60.mp4",
       "links": [
         {
           "label": "GitHub",
@@ -232,7 +232,7 @@ export const portfolio = {
       "image": "/images/kassentix-showcase-first-frame.jpg",
       "imageWidth": 1280,
       "imageHeight": 720,
-      "previewVideo": "/videos/kassentix-showcase-loop-720p60.mp4",
+      "previewVideo": "/videos/kassentix-showcase-720p60.mp4",
       "links": [
         {
           "label": "Live",
@@ -262,7 +262,7 @@ export const portfolio = {
       "image": "/images/klk-showcase-first-frame.jpg",
       "imageWidth": 1920,
       "imageHeight": 1080,
-      "previewVideo": "/videos/klk-showcase-loop-720p60.mp4",
+      "previewVideo": "/videos/klk-showcase-720p60.mp4",
       "links": [
         {
           "label": "Live",
