@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { Icon } from "./icon";
 
 // Previews stream through Media Source in bounded Range requests, at most two chunks in flight.
 // A plain <video src> sends one open-ended request, and the server keeps pushing that file onto the
@@ -134,5 +135,6 @@ export function ProjectPreview({ src, poster, title, active, preload = false }: 
       width={1280} height={720} muted loop playsInline disablePictureInPicture aria-hidden="true"
       onPlaying={event => setPlaying(!event.currentTarget.paused)} onError={() => setFailed(true)}
       onTimeUpdate={event => { if (feed.current.active) void pump(event.currentTarget, src, feed.current); }} />
+    <span className="play" aria-hidden="true"><Icon name="play" />Preview</span>
   </button>;
 }

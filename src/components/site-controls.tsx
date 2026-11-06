@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import Lenis from "lenis";
@@ -17,12 +17,37 @@ export function SiteControls() {
   const themeTransition = useRef<ViewTransition | null>(null);
   const lenis = useRef<Lenis | null>(null);
   const pending = useRef<string | null>(null);
-  const progress = useRef<HTMLDivElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
+  const controls = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
+  const toggleTheme = useCallback((x: number, y: number) => {
+    themeTransition.current?.skipTransition();
+    const animate = !!document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const apply = () => {
+      const next = document.documentElement.dataset.theme !== "dark";
+      flushSync(() => { document.documentElement.dataset.theme = next ? "dark" : "light"; setDark(next); });
+      document.dispatchEvent(new CustomEvent("portfolio:theme", { detail: { light: !next, delay: animate ? 450 : 0 } }));
+      try { localStorage.setItem("portfolio-theme", next ? "dark" : "light"); } catch { /* Keep the selection for this session. */ }
+    };
+    if (!animate) { apply(); return; }
+    const style = document.documentElement.style;
+    style.setProperty("--theme-x", `${x}px`);
+    style.setProperty("--theme-y", `${y}px`);
+    style.setProperty("--theme-diameter", `${2 * Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))}px`);
+    // Scope the stepped circular reveal to theme changes; page navigations also use view transitions.
+    document.documentElement.classList.add("theme-transition");
+    const transition = themeTransition.current = document.startViewTransition(apply);
+    void transition.ready.catch(() => { /* A newer toggle can skip this animation. */ });
+    void transition.finished.finally(() => { if (themeTransition.current === transition) document.documentElement.classList.remove("theme-transition"); });
+  }, []);
   useEffect(() => {
     setDark(document.documentElement.dataset.theme === "dark");
-  }, []);
+    // The command menu's "Switch theme" reveals from the middle of the screen.
+    const fromMenu = () => toggleTheme(innerWidth / 2, innerHeight / 2);
+    document.addEventListener("portfolio:toggle-theme", fromMenu);
+    return () => document.removeEventListener("portfolio:toggle-theme", fromMenu);
+  }, [toggleTheme]);
   useEffect(() => {
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const sync = () => {
@@ -31,7 +56,12 @@ export function SiteControls() {
       if (document.querySelector('[role="dialog"]')) lenis.current?.stop();
     };
     const dialog = (event: Event) => { if ((event as CustomEvent<boolean>).detail) lenis.current?.stop(); else lenis.current?.start(); };
-    const scroll = () => { const max = document.documentElement.scrollHeight - innerHeight; if (progress.current) progress.current.style.transform = `scaleX(${max > 0 ? Math.min(1, scrollY / max) : 0})`; };
+    const scroll = () => {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      if (bar.current) bar.current.style.scale = `${max > 0 ? Math.min(1, scrollY / max) : 0} 1`;
+      // "Back to top" only once there is a top to go back to.
+      if (controls.current) controls.current.dataset.away = String(scrollY > innerHeight * .5);
+    };
     sync(); scroll(); motion.addEventListener("change", sync); document.addEventListener("portfolio:dialog", dialog); window.addEventListener("scroll", scroll, { passive: true }); window.addEventListener("resize", scroll);
     return () => { lenis.current?.destroy(); motion.removeEventListener("change", sync); document.removeEventListener("portfolio:dialog", dialog); window.removeEventListener("scroll", scroll); window.removeEventListener("resize", scroll); };
   }, []);
@@ -60,36 +90,19 @@ export function SiteControls() {
     return () => document.removeEventListener("portfolio:navigate", navigate);
   }, [pathname, router]);
   function backToTop() {
-    const replay = () => {
-      if (window.scrollY > 1) return;
-      document.getElementById("home")?.focus({ preventScroll: true });
-      document.dispatchEvent(new Event("portfolio:back-to-top"));
-    };
-    if (lenis.current) lenis.current.scrollTo(0, { ...scrollOptions(0), onComplete: replay });
-    else { window.scrollTo({ top: 0, behavior: "instant" }); replay(); }
+    const arrive = () => { if (window.scrollY <= 1) document.getElementById("home")?.focus({ preventScroll: true }); };
+    if (lenis.current) lenis.current.scrollTo(0, { ...scrollOptions(0), onComplete: arrive });
+    else { window.scrollTo({ top: 0, behavior: "instant" }); arrive(); }
   }
-  function toggleTheme(event: MouseEvent<HTMLButtonElement>) {
-    themeTransition.current?.skipTransition();
-    const animate = !!document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const apply = () => {
-      const next = document.documentElement.dataset.theme !== "dark";
-      flushSync(() => { document.documentElement.dataset.theme = next ? "dark" : "light"; setDark(next); });
-      document.dispatchEvent(new CustomEvent("portfolio:theme", { detail: { light: !next, delay: animate ? 450 : 0 } }));
-      try { localStorage.setItem("portfolio-theme", next ? "dark" : "light"); } catch { /* Keep the selection for this session. */ }
-    };
-    if (!animate) { apply(); return; }
-    const { left, top, width, height } = event.currentTarget.getBoundingClientRect();
-    const x = left + width / 2, y = top + height / 2;
-    const style = document.documentElement.style;
-    style.setProperty("--theme-x", `${x}px`);
-    style.setProperty("--theme-y", `${y}px`);
-    // Extend the soft mask beyond the farthest corner so the final frame is fully covered.
-    style.setProperty("--theme-diameter", `${3 * Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))}px`);
-    // Scope the circular reveal to theme changes; page navigations also use view transitions.
-    document.documentElement.classList.add("theme-transition");
-    const transition = themeTransition.current = document.startViewTransition(apply);
-    void transition.ready.catch(() => { /* A newer toggle can skip this animation. */ });
-    void transition.finished.finally(() => { if (themeTransition.current === transition) document.documentElement.classList.remove("theme-transition"); });
-  }
-  return <><div className="bottom-blur" aria-hidden="true" /><div className="scroll-progress" ref={progress} aria-hidden="true" /><div className="floating-controls"><button className="back-top-control" onClick={backToTop} aria-label="Back to top" title="Back to top"><Icon name="up" /></button><button className="theme-control" data-dark={dark} onClick={toggleTheme} aria-label={`Switch to ${dark ? "light" : "dark"} theme`} title={`Switch to ${dark ? "light" : "dark"} theme`}><Icon name={dark ? "moon" : "sun"} /></button><a href={`mailto:${portfolio.profile.email}`} aria-label="Email Jordan" title="Email Jordan"><Icon name="mail" /></a></div></>;
+  const label = `Switch to ${dark ? "light" : "dark"} theme`;
+  return <>
+    <div className="bar" ref={bar} aria-hidden="true" />
+    <div className="controls" ref={controls}>
+      <button className="top" type="button" onClick={backToTop} aria-label="Back to top" title="Back to top"><Icon name="up" /></button>
+      <button type="button" onClick={event => { const { left, top, width, height } = event.currentTarget.getBoundingClientRect(); toggleTheme(left + width / 2, top + height / 2); }} aria-label={label} title={label}><Icon name={dark ? "moon" : "sun"} /></button>
+      <a href={`mailto:${portfolio.profile.email}`} aria-label="Email Jordan" title="Email Jordan"><Icon name="mail" /></a>
+      {/* Phones fold the stack into the command menu, which carries the same actions. */}
+      <button className="more" type="button" onClick={() => document.dispatchEvent(new Event("portfolio:command"))} aria-label="Open menu" title="Open menu"><Icon name="menu" /></button>
+    </div>
+  </>;
 }

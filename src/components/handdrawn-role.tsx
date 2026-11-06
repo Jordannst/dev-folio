@@ -1,24 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const strokes = [
-  ["M3 8C35 3 63 7 94 6S157 3 197 5"],
-  ["M3 9C42 8 65 4 100 5S159 7 197 3"],
-  ["M3 7C32 3 57 4 83 6S132 9 158 5S184 2 197 3", "M17 12C44 8 75 9 104 10S140 10 155 8"],
-  ["M3 5C33 7 59 4 91 5S154 8 197 4", "M62 11C99 8 143 11 184 8"],
-  ["M3 9C37 4 68 6 103 4S166 5 197 2", "M8 12C36 10 63 10 88 11"],
-];
-
+// A random dotted underline (one or two strokes), plotted on the 4px grid and drawn in pixel steps by CSS.
 export function HanddrawnRole({ children }: { children: string }) {
-  const [variant, setVariant] = useState<number | null>(null);
+  const ref = useRef<HTMLElement>(null);
+  const [stroke, setStroke] = useState<{ width: number; dots: [number, number][] } | null>(null);
 
-  // Choose after hydration so server and initial client markup stay identical.
-  useEffect(() => setVariant(Math.floor(Math.random() * strokes.length)), []);
+  // Choose after hydration so server and initial client markup stay identical; measure once the font is in.
+  useEffect(() => {
+    let live = true;
+    void document.fonts.ready.then(() => {
+      if (!live || !ref.current) return;
+      const width = ref.current.offsetWidth, variant = Math.floor(Math.random() * 4), phase = Math.random() * 6;
+      const frequency = [1.6, 2.4, 1.1, 3][variant], amplitude = [2, 1.5, 3, 1.2][variant], dots: [number, number][] = [];
+      for (let x = 0; x < width; x += 4) dots.push([x, Math.round(4 + amplitude * Math.sin(x / width * Math.PI * frequency + phase))]);
+      if (variant > 1) for (let x = Math.round(width * .15 / 4) * 4; x < width * .8; x += 4) dots.push([x, Math.round(9 + amplitude * .6 * Math.sin(x / width * Math.PI * frequency * 1.3 + phase + 1))]);
+      setStroke({ width, dots });
+    });
+    return () => { live = false; };
+  }, []);
 
-  return <strong className="role-accent">{children}
-    {variant !== null && <svg className="role-underline" viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true" data-style={variant}>
-      {strokes[variant].map((path, index) => <path key={index} d={path} pathLength={1} className={index ? "role-underline-second" : undefined} />)}
+  return <strong ref={ref} className="role">{children}
+    {stroke && <svg className="scribble" viewBox={`0 0 ${stroke.width} 12`} width={stroke.width} height="12" aria-hidden="true">
+      {stroke.dots.map(([x, y], index) => <rect key={index} x={x} y={y} width="2" height="2" />)}
     </svg>}
   </strong>;
 }

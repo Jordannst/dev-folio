@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ComponentProps } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useInView } from "motion/react";
 
 // Content stays visible until hydration; only elements still below the fold are hidden, then revealed once.
@@ -11,9 +11,4 @@ export function useRevealState<T extends Element>() {
   useEffect(() => { if (ref.current!.getBoundingClientRect().top > innerHeight) setState("pending"); }, []);
   useEffect(() => { if (inView) setState(value => value === "pending" ? "shown" : value); }, [inView]);
   return [ref, state] as const;
-}
-
-export function Reveal(props: ComponentProps<"section">) {
-  const [ref, state] = useRevealState<HTMLElement>();
-  return <section ref={ref} data-reveal={state} {...props} />;
 }
