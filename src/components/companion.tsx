@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { clampCompanion } from "@/lib/companion-bounds";
 import { companionPoses as poses, readCompanionState, type CompanionPose as Pose, type CompanionState } from "@/lib/companion-state";
 import { glassesAnchors, themeReactionPhase } from "@/lib/companion-theme";
@@ -16,6 +17,9 @@ export function Companion() {
   const accessoryRef = useRef<SVGGElement>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const closeReport = useCallback(() => setReportOpen(false), []);
+  // The report is fixed to the viewport; the hero clips (fold animation) would cut it off, so it lives in <body>.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const stage = stageRef.current!, pet = petRef.current!, sprite = spriteRef.current!;
@@ -352,5 +356,5 @@ export function Companion() {
       </span>
     </button>
     <span id="pogo-controls" className="sr-only">Drag to move Pogo. Keyboard: Space to pick up, arrow keys to move, Enter or Escape to put down. Shift+Enter opens Pogo’s little report.</span>
-  </div><PogoReport open={reportOpen} close={closeReport} /></>;
+  </div>{mounted && createPortal(<PogoReport open={reportOpen} close={closeReport} />, document.body)}</>;
 }

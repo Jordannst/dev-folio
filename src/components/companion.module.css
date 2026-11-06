@@ -1,4 +1,5 @@
-.stage { position:absolute; top:-168px; left:-24px; right:-24px; height:168px; pointer-events:none; }
+/* Pogo walks the hero's ground line between the column rails (snap() in scene.tsx sets --m, --w, --rail; the hero canvas sets --ground). */
+.stage { position:absolute; z-index:3; top:0; height:calc(var(--ground,460px) + 4px); left:calc(var(--m,calc((100% - var(--w,50vw)) / 2)) - var(--rail,24px)); width:calc(var(--w,50vw) + 2 * var(--rail,24px)); pointer-events:none; }
 .pet { position:absolute; bottom:0; left:0; width:80px; height:64px; padding:0; border:0; background:none; pointer-events:auto; touch-action:none; user-select:none; cursor:grab; border-radius:8px; }
 .stage[data-dragging=true] .pet { cursor:grabbing; }
 .stage:not([data-ready=true]) .pet { visibility:hidden; }
@@ -40,8 +41,8 @@
 .leftLeg, .rightLeg { position:absolute; top:89.0625%; width:10%; height:calc(9.375% + var(--sit, 0) * 3.125%); background:#8fb4d9; transform-origin:50% 0; clip-path:polygon(0 0,100% 0,100% 80%,80% 80%,80% 100%,20% 100%,20% 80%,0 80%); }
 .leftLeg { left:33.75%; transform:rotate(var(--swing, 0deg)); }
 .rightLeg { left:51.25%; transform:rotate(calc(-1 * var(--swing, 0deg))); }
-.dot { position:absolute; bottom:-2px; right:-2px; width:4px; height:4px; border-radius:50%; background:var(--muted); opacity:.5; transition:background .2s,box-shadow .2s; }
-.stage[data-touching=true] .dot { background:var(--blue); opacity:1; box-shadow:0 0 0 4px #8da7ff22; }
+.dot { position:absolute; bottom:4px; right:0; width:4px; height:4px; background:var(--muted); transition:background .2s steps(2); }
+.stage[data-touching=true] .dot { background:var(--accent); box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent); }
 .secretProp { display:none; position:absolute; top:0; left:0; width:120%; height:100%; overflow:visible; pointer-events:none; }
 .pet[data-secret] .secretProp { display:block; }
 .pet[data-secret-side=left] .secretProp { left:auto; right:0; transform:scaleX(-1); }
@@ -57,6 +58,6 @@
 .pet[data-secret=press] .switchSpark { opacity:1; }
 @keyframes switch-reveal { from { opacity:0; transform:translateY(6px) scale(.2); } to { opacity:1; transform:translateY(0) scale(1); } }
 @media (width < 640px) {
-  .stage { top:-88px; height:88px; left:0; right:0; }
+  .stage { height:calc(var(--ground,352px) + 4px); }
   .pet { width:60px; height:48px; }
 }

@@ -10,7 +10,8 @@ test("filters include overlapping projects once and preserve source order", () =
 
 test("command search normalizes whitespace/case and handles empty or unmatched input", () => {
   assert.deepEqual(searchCommands("  sKiLlS "), [{ label: "Skills", href: "/#skills" }]);
-  assert.equal(searchCommands("").length, 6);
+  assert.equal(searchCommands("").length, 8);
+  assert.deepEqual(searchCommands("theme"), [{ label: "Switch theme", href: "#theme" }]);
   assert.deepEqual(searchCommands("does not exist"), []);
   assert.deepEqual(searchCommands("Projects"), [{ label: "Projects", href: "/#projects" }]);
 });
