@@ -34,6 +34,8 @@ export function CommandMenu() {
     if (open) { setQuery(""); setSelected(0); navigating.current = false; }
     return () => { document.dispatchEvent(new CustomEvent("portfolio:dialog", { detail: false })); };
   }, [open]);
+  // Keyboard selection can move past the 45vh list; keep the active option visible.
+  useEffect(() => { if (open) document.getElementById(`command-${selected}`)?.scrollIntoView({ block: "nearest" }); }, [open, selected]);
   function choose(href: string) {
     const section = href !== "#theme" && !href.startsWith("mailto:");
     navigating.current = section; setOpen(false);
