@@ -214,9 +214,6 @@ details[open]::details-content { block-size:auto; }
 @supports (animation-timeline:view()) { .connect-dots { view-timeline:--connect; view-timeline-inset:0px; } .connect-dots .ink { animation:join steps(28) both; animation-timeline:--connect; animation-range:entry 100% cover 45%; } }
 @keyframes join { from { stroke-dashoffset:1; } to { stroke-dashoffset:0; } }
 .ground { height:300px; }
-.ground .base { position:absolute; left:var(--m,0); right:0; bottom:22px; z-index:2; display:flex; justify-content:space-between; max-width:var(--w); font:500 11px var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--ink); }
-.ground .base>span { padding:2px 6px; background:var(--bg); }
-.heart { color:var(--accent); }
 .mailbox { position:absolute; left:58%; top:calc(var(--ground,216px) - 70px); z-index:2; width:48px; height:72px; }
 .mailbox svg { display:block; width:100%; height:100%; overflow:visible; shape-rendering:crispEdges; transition:translate .2s steps(2); }
 .mailbox .flag { transform-origin:33px 24px; transition:transform .3s steps(3); }
@@ -285,7 +282,6 @@ details[open]::details-content { block-size:auto; }
   .soc { position:static; }
   .skills { flex-flow:row wrap; }.skill-row { display:contents; }.skill span { max-width:140px; }.skill { gap:10px; }.skill img { filter:none; }
   .ground { height:240px; }.mailbox { left:62%; top:calc(var(--ground,172px) - 70px); }
-  .ground .base { flex-direction:column; align-items:flex-start; gap:6px; padding-right:64px; }
   .archive { padding-top:48px; }
   .controls { right:12px; bottom:12px; }
   .controls>:not(.more) { display:none; }.controls .more { display:grid; }

@@ -47,6 +47,5 @@ export function Ground() {
     <a className="mailbox" href={mail} aria-label="Email Jordan"><span className="tip" aria-hidden="true">MAIL ME</span>
       <svg viewBox="0 0 16 24" aria-hidden="true"><rect x="7" y="12" width="2" height="12" fill="var(--wood)" /><rect x="1" y="4" width="12" height="9" fill="var(--dot-hi)" /><rect x="2" y="3" width="10" height="1" fill="var(--dot-hi)" /><rect x="2" y="6" width="5" height="5" fill="var(--bg)" /><rect x="3" y="7" width="3" height="1" fill="var(--dot-hi)" /><g className="flag"><rect x="13" y="6" width="1" height="7" fill="var(--accent)" /><rect x="13" y="6" width="3" height="2" fill="var(--accent)" /></g></svg>
     </a>
-    <div className="base"><span>Made with care <span className="heart"><Icon name="heart" /></span></span><span>© {new Date().getFullYear()} {portfolio.profile.name}</span></div>
   </footer>;
 }
