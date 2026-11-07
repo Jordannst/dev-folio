@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { defaultDesign, designs, resolveDesign } from "../src/designs/registry.ts";
 import { decideRoute } from "../src/designs/routing.ts";
-import { edgeConfigId } from "../src/designs/edge-config.ts";
+import { edgeConfigConnection, edgeConfigId } from "../src/designs/edge-config.ts";
 
 const base = { activeDesign: "dot-matrix", previewDesign: undefined, hasAdminSession: false, dev: false };
 
@@ -38,5 +38,12 @@ test("internal design paths open only in development", () => {
 
 test("reads the store id from the EDGE_CONFIG connection string", () => {
   assert.equal(edgeConfigId("https://edge-config.vercel.com/ecfg_abc123?token=t"), "ecfg_abc123");
+  assert.equal(edgeConfigId("https://global-config.vercel.com/ecfg_abc123?token=t"), "ecfg_abc123");
   for (const value of [undefined, "", "not a url", "https://example.com/"]) assert.equal(edgeConfigId(value), null);
+});
+
+test("reads the store from GLOBAL_CONFIG, falling back to EDGE_CONFIG", () => {
+  assert.equal(edgeConfigConnection({ GLOBAL_CONFIG: "g", EDGE_CONFIG: "e" }), "g");
+  assert.equal(edgeConfigConnection({ EDGE_CONFIG: "e" }), "e");
+  assert.equal(edgeConfigConnection({}), undefined);
 });

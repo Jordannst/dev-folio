@@ -14,7 +14,7 @@ function notice({ activated, error, status }: Params) {
   if (error === "login") return "Login gagal. Coba lagi.";
   if (error === "denied") return "Akun ini tidak punya akses";
   if (error === "config") return "Login belum dikonfigurasi";
-  if (error === "edge-config") return "Edge Config belum terhubung ke project.";
+  if (error === "edge-config") return "Global Config (dulu Edge Config) belum terhubung ke project.";
   if (error === "save") return `Gagal menyimpan pilihan${typeof status === "string" && /^\d{3}$/.test(status) ? ` (status ${status})` : ""}. Desain aktif tidak berubah.`;
 }
 
