@@ -1,7 +1,8 @@
 "use client";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, useState } from "react";
-import { searchCommands } from "@/data/portfolio";
+import { searchCommands } from "@/lib/commands";
+import { commands } from "../commands";
 import { Icon } from "./icon";
 
 export function CommandMenu() {
@@ -11,7 +12,7 @@ export function CommandMenu() {
   const [modifier, setModifier] = useState("Ctrl");
   const navigating = useRef(false);
   const trigger = useRef<HTMLButtonElement>(null);
-  const results = searchCommands(query);
+  const results = searchCommands(commands, query);
   useEffect(() => {
     setModifier(/Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl");
     const shortcut = (event: KeyboardEvent) => {

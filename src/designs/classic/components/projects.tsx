@@ -38,6 +38,7 @@ function ProjectCard({ project, preload }: { project: Project; preload: boolean 
           <Image className="project-image" src={project.image} alt={`${project.title} application preview`} width={project.imageWidth} height={project.imageHeight} preload={preload} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 95vw" />}</ViewTransition>
         <div className="project-title"><h3>{project.title}</h3><time>{project.year}</time></div>
         <p>{project.description}</p>
+        {project.award && <p className="project-award">{project.award}</p>}
         <div className="tags">{project.tags.map(tag => <span key={tag}>{tag}</span>)}</div>
         <div className="project-links">{project.links.map(link => <a className={`button ${link.label === "GitHub" ? "github-button" : "live-button"}`} key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" aria-label={`${link.label}: ${project.title} (opens in new tab)`}>{link.label === "GitHub" && <Icon name="github" />}{link.label}<Icon name="arrow" /></a>)}</div>
       </article>;

@@ -1,0 +1,30 @@
+.overlay { --card-right:max(20px,calc(25vw - 40px)); --card-width:min(300px,calc(100vw - 32px)); --card-top:66px; position:fixed; inset:0; z-index:65; pointer-events:none; }
+.bounds { position:absolute; inset:-18px -64px -88px; pointer-events:none; }
+.hanging { position:absolute; top:var(--card-top); right:var(--card-right); width:var(--card-width); pointer-events:none; }
+.tether { position:relative; pointer-events:auto; }
+.cords { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+.cords svg { position:absolute; top:0; width:2px; height:100%; overflow:visible; }
+.cords svg:first-child { right:calc(var(--card-right) + var(--card-width) - 40px); }
+.cords svg:last-child { right:calc(var(--card-right) + 38px); }
+/* A pixel sheet that drops in on dotted cords: page colours, hard accent shadow, stepped motion. */
+.paper { position:relative; transform-origin:50% 0; border:1px solid var(--chip-line); background:var(--bg); color:var(--ink); box-shadow:5px 5px 0 var(--accent); }
+.paperContent { padding:22px 18px 16px; max-height:calc(100dvh - var(--card-top) - 112px); overflow-y:auto; scrollbar-width:none; }
+.close { position:absolute; right:10px; top:10px; display:grid; place-items:center; width:28px; height:28px; padding:0; border:1px solid var(--chip-line); background:var(--chip); color:var(--ink); }
+.close:hover { border-color:var(--accent); color:var(--accent); }
+.paper h2 { font:900 26px/1 var(--font-doto),monospace; text-transform:uppercase; letter-spacing:.02em; margin:0 34px 14px 0; }
+.dragHandle { display:block; padding:0; border:0; background:none; color:inherit; font:inherit; letter-spacing:inherit; text-transform:inherit; text-align:left; cursor:grab; touch-action:none; user-select:none; }
+.dragHandle:active { cursor:grabbing; }
+.ranges { display:inline-flex; gap:3px; padding:3px; border:1px solid var(--chip-line); background:var(--chip); }
+.ranges button { height:26px; padding:0 10px; border:0; background:none; font:500 11px var(--font-geist-mono),monospace; color:var(--muted); }
+.ranges button[aria-pressed=true] { background:var(--ink); color:var(--bg); }
+.stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0 12px; }
+.stats span { display:block; font:500 10.5px var(--font-geist-mono),monospace; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+.stats strong { display:block; font:900 30px/1.1 var(--font-doto),monospace; }
+.chart { min-height:84px; }
+.chart svg { width:100%; display:block; }
+.chart p { display:grid; place-items:center; height:84px; padding:0 12px; text-align:center; font:500 11.5px var(--font-geist-mono),monospace; color:var(--muted); background:repeating-linear-gradient(90deg,var(--line) 0 var(--dot,2px),transparent var(--dot,2px) 6px) 0 14px/100% var(--dot,2px) no-repeat,repeating-linear-gradient(90deg,var(--line) 0 var(--dot,2px),transparent var(--dot,2px) 6px) 0 42px/100% var(--dot,2px) no-repeat,repeating-linear-gradient(90deg,var(--line) 0 var(--dot,2px),transparent var(--dot,2px) 6px) 0 70px/100% var(--dot,2px) no-repeat; }
+.chart p span { padding:2px 6px; background:var(--bg); }
+.dates { display:flex; justify-content:space-between; font:500 10px var(--font-geist-mono),monospace; color:var(--muted); margin-top:3px; }
+.updated { margin-top:12px; font:500 11px var(--font-geist-mono),monospace; color:var(--muted); }
+.paper :focus-visible { outline-color:var(--accent); outline-offset:2px; }
+@media (width < 640px) { .overlay { --card-right:16px; --card-top:42px; } .bounds { left:-12px; right:-12px; } }

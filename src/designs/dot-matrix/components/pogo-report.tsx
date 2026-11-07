@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { AnimatePresence, animate, motion, useDragControls, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import type { TrafficReport } from "@/lib/web-analytics";
+import { Icon } from "./icon";
 import styles from "./pogo-report.module.css";
 
 export function PogoReport({ open, close }: { open: boolean; close: () => void }) {
@@ -63,8 +64,7 @@ export function PogoReport({ open, close }: { open: boolean; close: () => void }
   const number = new Intl.NumberFormat("en-US");
   return <AnimatePresence>{open && <div className={styles.overlay}>
     <div className={styles.cords} aria-hidden="true">{[0, 1].map(side => <svg key={side}>
-      <motion.line x1="0" y1="0" x2={x} y2={ropeEnd} stroke="#77766e" strokeWidth="2" />
-      <motion.line x1="0" y1="0" x2={x} y2={ropeEnd} stroke="#b1aaa0" strokeWidth="2" strokeDasharray="3 2" />
+      <motion.line x1="0" y1="0" x2={x} y2={ropeEnd} stroke="var(--muted)" strokeWidth="2" strokeDasharray="2 2" />
     </svg>)}</div>
     <div className={styles.hanging}>
     <div ref={boundsRef} className={styles.bounds} />
@@ -75,21 +75,20 @@ export function PogoReport({ open, close }: { open: boolean; close: () => void }
       initial={reduced ? { opacity: 0, y: 0 } : { y: -400, rotate: 0 }}
       animate={reduced ? { opacity: 1, y: 0 } : { y: 0, rotate: [0, 2, -1, .5, 0] }}
       exit={reduced ? { opacity: 0 } : { y: -400, rotate: -2 }}
-      transition={{ duration: reduced ? .1 : .85, ease: [.22, 1, .36, 1] }}>
-      <div className={styles.clips} aria-hidden="true"><i /><i /></div>
+      transition={{ duration: reduced ? .1 : .85, ease: reduced ? "linear" : (t: number) => Math.floor(t * 12) / 12 }}>
       <div className={styles.paperContent}>
-      <button ref={closeRef} className={styles.close} type="button" aria-label="Close Pogo's report" onClick={close}>×</button>
+      <button ref={closeRef} className={styles.close} type="button" aria-label="Close Pogo's report" onClick={close}><Icon name="close" /></button>
       <h2 id="pogo-report-title"><button type="button" className={styles.dragHandle} aria-describedby="pogo-report-move"
         onPointerDown={event => { if (event.isPrimary && event.button === 0) drag.start(event); }} onKeyDown={tugWithKeys} onKeyUp={release} onBlur={release}>Pogo’s little report</button></h2>
       <span id="pogo-report-move" className="sr-only">Pull this title and release to let the report swing back. You can also hold and release an arrow key when focused.</span>
       <div className={styles.ranges} role="group" aria-label="Analytics time range">{([7, 30] as const).map(range => <button key={range} type="button" aria-pressed={days === range} onClick={() => setDays(range)}>{range}D</button>)}</div>
-      <div className={styles.stats} aria-live="polite"><div><span>Visitors</span><strong>{status === "ready" ? number.format(report!.visitors) : "—"}</strong></div><div><span>Page views</span><strong>{status === "ready" ? number.format(report!.pageviews) : "—"}</strong></div></div>
+      <div className={styles.stats} aria-live="polite"><div><span>Visitors</span><strong>{status === "ready" ? number.format(report!.visitors) : "--"}</strong></div><div><span>Page views</span><strong>{status === "ready" ? number.format(report!.pageviews) : "--"}</strong></div></div>
       <div className={styles.chart}>
         {status === "ready" ? <><svg viewBox="0 0 260 84" role="img" aria-label={`Daily page views over the last ${days} days`}>
-          <path d="M12 14H248M12 42H248M12 70H248" fill="none" stroke="#6a755733" strokeDasharray="3 4" />
-          <polygon points={`12,70 ${points} 248,70`} fill="#71876822" />
-          <polyline points={points} fill="none" stroke="#66805e" strokeWidth="2" strokeLinejoin="round" />
-        </svg><div className={styles.dates}><span>{values[0]?.date.slice(5)}</span><span>{values.at(-1)?.date.slice(5)} · UTC</span></div></> : <p role="status">{status === "loading" ? "Gathering a little report…" : "Analytics isn’t available yet."}</p>}
+          <path d="M12 14H248M12 42H248M12 70H248" fill="none" stroke="var(--line)" strokeWidth="2" strokeDasharray="2 4" />
+          <polygon points={`12,70 ${points} 248,70`} fill="var(--accent)" fillOpacity=".15" />
+          <polyline points={points} fill="none" stroke="var(--accent)" strokeWidth="2" />
+        </svg><div className={styles.dates}><span>{values[0]?.date.slice(5)}</span><span>{values.at(-1)?.date.slice(5)} · UTC</span></div></> : <p role="status"><span>{status === "loading" ? "Gathering a little report…" : "Analytics isn’t available yet."}</span></p>}
       </div>
       <p className={styles.updated}>{report ? `Checked ${new Date(report.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · daily page views` : "A little peek at this corner of the web."}</p>
       </div>

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { portfolio } from "@/data/portfolio";
-import { Projects } from "@/components/projects";
-import { Footer } from "@/components/site-frame";
-import { CommandMenu } from "@/components/command-menu";
-import { Icon } from "@/components/icon";
-import { PageTransition } from "@/components/page-transition";
+import { Projects } from "@/designs/classic/components/projects";
+import { Footer } from "@/designs/classic/components/site-frame";
+import { CommandMenu } from "@/designs/classic/components/command-menu";
+import { Icon } from "@/designs/classic/components/icon";
+import { PageTransition } from "@/designs/classic/components/page-transition";
 import { socialPreview } from "@/lib/seo";
 
 const title = "Web, Mobile & AI Projects";

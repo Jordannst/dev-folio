@@ -166,7 +166,8 @@ export const portfolio = {
       "title": "SIAGA",
       "year": "2026",
       "role": "Full Stack Developer & AI Integration",
-      "description": "A team-built civic reporting mobile app with location-based reports, government follow-up, and AI safety guidance. Won 3rd place at ProxoCoris 2026.",
+      "description": "A team-built civic reporting mobile app with location-based reports, government follow-up, and AI safety guidance.",
+      "award": "3rd place · ProxoCoris 2026",
       "tags": [
         "React Native",
         "Expo",
@@ -276,20 +277,9 @@ export const portfolio = {
   ]
 };
 
-export type Project = (typeof portfolio.projects)[number] & { previewVideo?: string };
+export type Project = (typeof portfolio.projects)[number] & { previewVideo?: string; award?: string };
 export type Experience = (typeof portfolio.experience)[number];
 export type ProjectFilter = 'all' | 'ai' | 'business';
 export function filterProjects(filter: ProjectFilter, projects: Project[] = portfolio.projects): Project[] {
   return projects.filter(project => filter === 'all' || project.categories.includes(filter));
-}
-const commands = [
-  { label: 'Home', href: '/' },
-  { label: 'Experience', href: '/#experience' },
-  { label: 'Skills', href: '/#skills' },
-  { label: 'Projects', href: '/#projects' },
-  { label: 'GitHub Activity', href: '/#github' },
-  { label: 'Contact', href: '/#contact' },
-];
-export function searchCommands(query: string): typeof commands {
-  return commands.filter(command => command.label.toLowerCase().includes(query.trim().toLowerCase()));
 }

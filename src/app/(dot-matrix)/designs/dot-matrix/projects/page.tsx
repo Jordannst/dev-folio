@@ -1,0 +1,31 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { portfolio } from "@/data/portfolio";
+import { Projects } from "@/designs/dot-matrix/components/projects";
+import { Footer, Ground } from "@/designs/dot-matrix/components/site-frame";
+import { CommandMenu } from "@/designs/dot-matrix/components/command-menu";
+import { Icon } from "@/designs/dot-matrix/components/icon";
+import { PageTransition } from "@/designs/dot-matrix/components/page-transition";
+import { socialPreview } from "@/lib/seo";
+
+const title = "Web, Mobile & AI Projects";
+const description = "Explore Jordan Sutarto's web, mobile, and AI projects: RAG document chat, cloud POS, logistics invoicing, and civic reporting.";
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: "/projects" },
+  openGraph: { ...socialPreview, title: `${title} | ${socialPreview.siteName}`, description, url: "/projects" },
+};
+export default function ProjectsPage() {
+  return <PageTransition><div className="page">
+    <main id="main" className="col archive">
+      <header className="archive-head">
+        <Link href="/" className="text-link" prefetch transitionTypes={["nav-back"]}><Icon name="back" /> Back home</Link>
+        <div><h1 className="dot" id="home" tabIndex={-1}>Projects</h1><CommandMenu /></div>
+      </header>
+      <section className="cross" aria-label="Selected projects"><Projects projects={portfolio.projects} preloadFirstImage /></section>
+      <Footer />
+    </main>
+    <Ground />
+  </div></PageTransition>;
+}
