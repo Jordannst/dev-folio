@@ -1,0 +1,36 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { defaultDesign, designs, resolveDesign } from "../src/designs/registry.ts";
+import { decideRoute } from "../src/designs/routing.ts";
+
+const base = { activeDesign: "dot-matrix", previewDesign: undefined, hasAdminSession: false, dev: false };
+
+test("registry lists classic first, defaults to it, and never uses reserved ids", () => {
+  assert.deepEqual(designs.map(d => d.id), ["classic", "dot-matrix"]);
+  assert.equal(defaultDesign, "classic");
+  assert.ok(!designs.some(d => (d.id as string) === "exit"));
+});
+
+test("resolveDesign keeps known ids and falls back for anything else", () => {
+  assert.equal(resolveDesign("dot-matrix"), "dot-matrix");
+  for (const value of [undefined, null, "", "Dot-Matrix", " dot-matrix", "unknown", 42, { id: "dot-matrix" }]) assert.equal(resolveDesign(value), "classic");
+});
+
+test("public paths rewrite to the active design or the default", () => {
+  assert.deepEqual(decideRoute({ ...base, pathname: "/" }), { kind: "rewrite", pathname: "/designs/dot-matrix", clearPreview: false });
+  assert.deepEqual(decideRoute({ ...base, pathname: "/projects" }), { kind: "rewrite", pathname: "/designs/dot-matrix/projects", clearPreview: false });
+  assert.deepEqual(decideRoute({ ...base, pathname: "/", activeDesign: "nope" }), { kind: "rewrite", pathname: "/designs/classic", clearPreview: false });
+});
+
+test("preview needs an admin session and a known id, otherwise it is cleared", () => {
+  assert.deepEqual(decideRoute({ ...base, pathname: "/", previewDesign: "classic", hasAdminSession: true }), { kind: "rewrite", pathname: "/designs/classic", clearPreview: false });
+  assert.deepEqual(decideRoute({ ...base, pathname: "/", previewDesign: "classic" }), { kind: "rewrite", pathname: "/designs/dot-matrix", clearPreview: true });
+  assert.deepEqual(decideRoute({ ...base, pathname: "/projects", previewDesign: "ghost", hasAdminSession: true }), { kind: "rewrite", pathname: "/designs/dot-matrix/projects", clearPreview: true });
+});
+
+test("internal design paths open only in development", () => {
+  assert.deepEqual(decideRoute({ ...base, pathname: "/designs/dot-matrix", dev: true }), { kind: "next" });
+  assert.deepEqual(decideRoute({ ...base, pathname: "/designs/dot-matrix/projects" }), { kind: "not-found" });
+  assert.deepEqual(decideRoute({ ...base, pathname: "/designs/classic", hasAdminSession: true }), { kind: "not-found" });
+  assert.deepEqual(decideRoute({ ...base, pathname: "/admin" }), { kind: "next" });
+});
