@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { defaultDesign, designs, resolveDesign } from "../src/designs/registry.ts";
 import { decideRoute } from "../src/designs/routing.ts";
+import { edgeConfigId } from "../src/designs/edge-config.ts";
 
 const base = { activeDesign: "dot-matrix", previewDesign: undefined, hasAdminSession: false, dev: false };
 
@@ -33,4 +34,9 @@ test("internal design paths open only in development", () => {
   assert.deepEqual(decideRoute({ ...base, pathname: "/designs/dot-matrix/projects" }), { kind: "not-found" });
   assert.deepEqual(decideRoute({ ...base, pathname: "/designs/classic", hasAdminSession: true }), { kind: "not-found" });
   assert.deepEqual(decideRoute({ ...base, pathname: "/admin" }), { kind: "next" });
+});
+
+test("reads the store id from the EDGE_CONFIG connection string", () => {
+  assert.equal(edgeConfigId("https://edge-config.vercel.com/ecfg_abc123?token=t"), "ecfg_abc123");
+  for (const value of [undefined, "", "not a url", "https://example.com/"]) assert.equal(edgeConfigId(value), null);
 });
