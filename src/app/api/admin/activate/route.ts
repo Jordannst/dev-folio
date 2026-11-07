@@ -4,7 +4,7 @@ import { writeActiveDesign } from "@/designs/edge-config";
 import { isDesignId } from "@/designs/registry";
 import { SESSION_COOKIE, verifySession } from "@/designs/session";
 
-// A plain route instead of a Server Action: see the GHSA-p3m5-59mp-jv5r test. Origin check replaces the one Server Actions do.
+// Plain POST route; it checks Origin itself, as a Server Action would.
 export async function POST(request: NextRequest) {
   const back = (query = "") => NextResponse.redirect(new URL(`/admin${query}`, request.url), 303);
   if (request.headers.get("origin") !== request.nextUrl.origin) return back();
