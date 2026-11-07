@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { SESSION_MAX_AGE, signSession, verifySession } from "../src/designs/session.ts";
+import { missingAuthEnv } from "../src/designs/admin-config.ts";
 
 const secret = "test-secret-with-at-least-32-bytes!!";
 
@@ -23,4 +24,10 @@ test("malformed tokens and missing configuration never throw", async () => {
   assert.equal(await verifySession(token, undefined, "123"), false);
   assert.equal(await verifySession(token, "", "123"), false);
   assert.equal(await verifySession(token, secret, undefined), false);
+});
+
+test("lists missing or empty auth env names in a stable order", () => {
+  const full = { GITHUB_CLIENT_ID: "a", GITHUB_CLIENT_SECRET: "b", ADMIN_GITHUB_ID: "1", SESSION_SECRET: "s" };
+  assert.deepEqual(missingAuthEnv(full), []);
+  assert.deepEqual(missingAuthEnv({ ...full, GITHUB_CLIENT_SECRET: "", SESSION_SECRET: undefined }), ["GITHUB_CLIENT_SECRET", "SESSION_SECRET"]);
 });

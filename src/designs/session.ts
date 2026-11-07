@@ -3,6 +3,8 @@ export const SESSION_COOKIE = "__Host-admin_session";
 export const STATE_COOKIE = "__Host-oauth_state";
 export const PREVIEW_COOKIE = "design_preview";
 export const SESSION_MAX_AGE = 604800;
+// __Host- cookies must be Secure with Path=/, also when they are cleared.
+export const adminCookie = { httpOnly: true, secure: true, sameSite: "lax" as const, path: "/" };
 
 const encoder = new TextEncoder();
 const toBase64Url = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
