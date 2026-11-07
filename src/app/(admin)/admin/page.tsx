@@ -4,7 +4,6 @@ import { missingAuthEnv } from "@/designs/admin-config";
 import { readActiveDesign } from "@/designs/edge-config";
 import { defaultDesign, designs, isDesignId } from "@/designs/registry";
 import { SESSION_COOKIE, verifySession } from "@/designs/session";
-import { activateDesign } from "./actions";
 
 type Params = Record<string, string | string[] | undefined>;
 const nameOf = (id: string) => designs.find(design => design.id === id)?.name;
@@ -48,7 +47,7 @@ async function Catalog() {
         <p>{design.description}</p>
         <div className="actions">
           <a className="button" href={`/admin/preview/${design.id}`} target="_blank" rel="noopener">Preview</a>
-          <form action={activateDesign}>
+          <form action="/api/admin/activate" method="post">
             <input type="hidden" name="id" value={design.id} />
             <button type="submit" className="button primary" disabled={active.id === design.id}>Aktifkan</button>
           </form>

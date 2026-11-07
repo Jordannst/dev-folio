@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readdirSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { defaultDesign, designs, resolveDesign } from "../src/designs/registry.ts";
 import { decideRoute } from "../src/designs/routing.ts";
@@ -39,4 +40,10 @@ test("internal design paths open only in development", () => {
 test("reads the store id from the EDGE_CONFIG connection string", () => {
   assert.equal(edgeConfigId("https://edge-config.vercel.com/ecfg_abc123?token=t"), "ecfg_abc123");
   for (const value of [undefined, "", "not a url", "https://example.com/"]) assert.equal(edgeConfigId(value), null);
+});
+
+// next 16.3.8 has a DoS reachable only through Server Actions (GHSA-p3m5-59mp-jv5r, fixed in 16.4.1). Drop this test with that upgrade.
+test("app has no Server Actions while next is below 16.4.1", () => {
+  const files = readdirSync("src", { recursive: true }).map(String).filter(file => /\.tsx?$/.test(file));
+  assert.deepEqual(files.filter(file => /["']use server["']/.test(readFileSync(`src/${file}`, "utf8"))), []);
 });
