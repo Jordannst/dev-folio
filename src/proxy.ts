@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { readActiveDesign } from "@/designs/edge-config";
 import { decideRoute } from "@/designs/routing";
-import { PREVIEW_COOKIE, SESSION_COOKIE, verifySession } from "@/designs/session";
+import { PREVIEW_COOKIE, previewCookie, SESSION_COOKIE, verifySession } from "@/designs/session";
 
 export const config = { matcher: ["/", "/projects", "/designs/:path*"] };
 
@@ -16,6 +16,6 @@ export async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   url.pathname = decision.kind === "rewrite" ? decision.pathname : "/__design-not-found";
   const response = NextResponse.rewrite(url);
-  if (decision.kind === "rewrite" && decision.clearPreview) response.cookies.delete(PREVIEW_COOKIE);
+  if (decision.kind === "rewrite" && decision.clearPreview) response.cookies.set(PREVIEW_COOKIE, "", { ...previewCookie, maxAge: 0 });
   return response;
 }

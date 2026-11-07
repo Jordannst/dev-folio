@@ -5,6 +5,8 @@ export const PREVIEW_COOKIE = "design_preview";
 export const SESSION_MAX_AGE = 604800;
 // __Host- cookies must be Secure with Path=/, also when they are cleared.
 export const adminCookie = { httpOnly: true, secure: true, sameSite: "lax" as const, path: "/" };
+// Not httpOnly: PreviewBadge reads it. No Max-Age, so it ends with the browser session.
+export const previewCookie = { secure: true, sameSite: "lax" as const, path: "/" };
 
 const encoder = new TextEncoder();
 const toBase64Url = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");

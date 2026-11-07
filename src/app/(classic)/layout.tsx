@@ -4,6 +4,7 @@ import "lenis/dist/lenis.css";
 import { SiteControls } from "@/designs/classic/components/site-controls";
 import { Analytics } from "@vercel/analytics/next";
 import { baseMetadata } from "@/lib/seo";
+import { PreviewBadge } from "@/designs/preview-badge";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <a href="#main" className="skip-link">Skip to content</a>
         {children}
         <SiteControls />
+        <PreviewBadge />
         <Analytics />
       </body>
     </html>

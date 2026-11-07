@@ -4,6 +4,7 @@ import "lenis/dist/lenis.css";
 import { SiteControls } from "@/designs/dot-matrix/components/site-controls";
 import { Analytics } from "@vercel/analytics/next";
 import { baseMetadata } from "@/lib/seo";
+import { PreviewBadge } from "@/designs/preview-badge";
 
 // Doto draws headings as dot-matrix type; Geist and Geist Mono carry body text and labels.
 const doto = Doto({ subsets: ["latin"], variable: "--font-doto", display: "swap" });
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <a href="#main" className="skip-link">Skip to content</a>
         {children}
         <SiteControls />
+        <PreviewBadge />
         <Analytics />
       </body>
     </html>
