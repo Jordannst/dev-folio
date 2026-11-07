@@ -283,17 +283,3 @@ export type ProjectFilter = 'all' | 'ai' | 'business';
 export function filterProjects(filter: ProjectFilter, projects: Project[] = portfolio.projects): Project[] {
   return projects.filter(project => filter === 'all' || project.categories.includes(filter));
 }
-const commands = [
-  { label: 'Home', href: '/' },
-  { label: 'Experience', href: '/#experience' },
-  { label: 'Skills', href: '/#skills' },
-  { label: 'Projects', href: '/#projects' },
-  { label: 'GitHub Activity', href: '/#github' },
-  { label: 'Contact', href: '/#contact' },
-  // Actions too, so the menu covers the floating buttons that phones fold into one menu button.
-  { label: 'Switch theme', href: '#theme' },
-  { label: 'Email Jordan', href: `mailto:${portfolio.profile.email}` },
-];
-export function searchCommands(query: string): typeof commands {
-  return commands.filter(command => command.label.toLowerCase().includes(query.trim().toLowerCase()));
-}

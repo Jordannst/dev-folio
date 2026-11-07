@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source "./";
+@source "../../app/(dot-matrix)";
 
 /* Dot Matrix: one 4px grid of 2px dots runs through the scenes, rails, dividers, icons and type. */
 :root { --sun:#cf6a33; --field:#dad9d1; --col:50vw; --rail:24px; --w:calc(round(down,var(--col),4px) + 2px); --dot:2px; --bg:#ebeae4; --ink:#171716; --muted:#6b6a64; --line:#bdbcb3; --chip:#e2e1da; --chip-line:#c8c7bd; --card:#e4e3dc; --accent:#3d5bd6; --accent-ink:#fff; --dot-far:#b3b2aa; --dot-mid:#8b8a83; --dot-hi:#3f3e3a; --dot-gnd:#9c9b93; --dot-speck:#2b2b29; --dot-star:#55544f; --dot-cloud:#a8a79f; --water:#5d82ad; --wood:#8b6c52; --l0:#dddcd4; --l1:#c9d3fb; --l2:#9fb2f7; --l3:#6c86ec; --l4:#3d5bd6; color-scheme:light; interpolate-size:allow-keywords; }

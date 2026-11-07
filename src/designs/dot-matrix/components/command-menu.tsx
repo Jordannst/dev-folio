@@ -1,7 +1,8 @@
 "use client";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, useState } from "react";
-import { searchCommands } from "@/data/portfolio";
+import { searchCommands } from "@/lib/commands";
+import { commands } from "../commands";
 import { Icon } from "./icon";
 
 export function CommandMenu() {
@@ -13,7 +14,7 @@ export function CommandMenu() {
   const trigger = useRef<HTMLButtonElement>(null);
   // Whatever opened the menu gets focus back: the Ctrl K keys, the phone menu button, or the shortcut's origin.
   const opener = useRef<HTMLElement | null>(null);
-  const results = searchCommands(query);
+  const results = searchCommands(commands, query);
   const show = (next: boolean) => { if (next) opener.current = document.activeElement as HTMLElement | null; setOpen(next); };
   useEffect(() => {
     setModifier(/Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl");

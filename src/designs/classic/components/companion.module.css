@@ -1,0 +1,62 @@
+.stage { position:absolute; top:-168px; left:-24px; right:-24px; height:168px; pointer-events:none; }
+.pet { position:absolute; bottom:0; left:0; width:80px; height:64px; padding:0; border:0; background:none; pointer-events:auto; touch-action:none; user-select:none; cursor:grab; border-radius:8px; }
+.stage[data-dragging=true] .pet { cursor:grabbing; }
+.stage:not([data-ready=true]) .pet { visibility:hidden; }
+.sprite { display:block; width:100%; height:100%; background:url('/images/pogo.webp') 0 0 / 800% 400% no-repeat; image-rendering:pixelated; pointer-events:none; }
+.visual { display:block; position:absolute; inset:0; transform-origin:50% 100%; transition:transform 180ms steps(3,end); pointer-events:none; }
+.accessory { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+.glasses { visibility:hidden; transform-origin:15px 5px; transition:transform 500ms steps(6,end),opacity 160ms linear; }
+.pet[data-sunglasses=true] .glasses { visibility:visible; }
+.reactionEyes,.shadeHand,.glassesHand { display:none; }
+.pet:is([data-theme-reaction=squint],[data-theme-reaction=shade],[data-theme-reaction=put-on]) .reactionEyes,
+.pet:is([data-theme-reaction=peek],[data-theme-reaction=take-off],[data-theme-reaction=settle]) .reactionEyes { display:block; }
+.smileEyes { display:none; }
+.pet:is([data-theme-reaction=peek],[data-theme-reaction=take-off],[data-theme-reaction=settle]) .smileEyes { display:block; }
+.pet:is([data-theme-reaction=peek],[data-theme-reaction=take-off],[data-theme-reaction=settle]) .squintEyes { display:none; }
+.pet:is([data-theme-reaction=squint],[data-theme-reaction=shade]) .glasses { opacity:0; transform:translate(25px,18px) rotate(70deg) scale(.7); }
+.pet[data-theme-reaction=squint] .visual { transform:translateX(-2px) rotate(-3deg); }
+.pet[data-theme-reaction=shade] .shadeHand { display:block; }
+.pet:is([data-theme-reaction=put-on],[data-theme-reaction=peek],[data-theme-reaction=take-off]) .glassesHand { display:block; }
+.pet[data-theme-reaction=cool] .visual { transform:translateY(-1px) rotate(-2deg); }
+.pet[data-theme-reaction=confused] .visual { animation:look-around 650ms steps(2,end); }
+.pet[data-theme-reaction=peek] .glasses { transform:translateY(5px); }
+.pet[data-theme-reaction=peek] .glassesHand { transform:translateY(5px); }
+.pet[data-theme-reaction=take-off] .glasses { transform:translate(26px,17px) rotate(70deg) scale(.7); }
+.pet[data-theme-reaction=take-off] .glassesHand { transform:translate(7px,9px); }
+.pet[data-theme-reaction=settle] .glasses { opacity:0; transform:translate(27px,23px) rotate(80deg) scale(.4); }
+/* Remove the neutral sprite's lowered arm while the same arm is raised. */
+.pet[data-theme-reaction=shade] :is(.sprite,.seatedBody) { clip-path:polygon(0 0,100% 0,100% var(--body-bottom,100%),26% var(--body-bottom,100%),26% 70%,0 70%); }
+.pet:is([data-theme-reaction=put-on],[data-theme-reaction=peek],[data-theme-reaction=take-off]) :is(.sprite,.seatedBody) { clip-path:polygon(0 0,100% 0,100% 70%,74% 70%,74% var(--body-bottom,100%),0 var(--body-bottom,100%)); }
+@keyframes look-around { 25% { transform:translateX(-2px); } 75% { transform:translateX(2px); } }
+@media (prefers-reduced-motion:reduce) { .visual,.glasses { transition:none; animation:none; } }
+.seated { display:none; position:absolute; inset:0; pointer-events:none; transform:translateY(calc(var(--sit, 0) * 9.375%)); }
+.pet:is([data-pose=sitDown],[data-pose=sit],[data-pose=standUp]) .sprite { visibility:hidden; }
+.pet:is([data-pose=sitDown],[data-pose=sit],[data-pose=standUp]) .seated { display:block; }
+.seatedBody { --body-bottom:90.625%; position:absolute; inset:0; background:url('/images/pogo.webp') 0 0 / 800% 400% no-repeat; image-rendering:pixelated; clip-path:inset(0 0 9.375%); }
+.happyEyeLeft, .happyEyeRight { position:absolute; top:51.5625%; width:10%; height:10.9375%; background:#92b8e1; }
+.happyEyeLeft { left:32.5%; }
+.happyEyeRight { left:56.25%; }
+.happyEyeLeft::after, .happyEyeRight::after { content:""; position:absolute; inset:0 0 14.2857%; background:#293e50; clip-path:polygon(0 100%,0 66.667%,25% 66.667%,25% 33.333%,37.5% 33.333%,37.5% 0,62.5% 0,62.5% 33.333%,75% 33.333%,75% 66.667%,100% 66.667%,100% 100%,62.5% 100%,62.5% 66.667%,37.5% 66.667%,37.5% 100%); }
+.leftLeg, .rightLeg { position:absolute; top:89.0625%; width:10%; height:calc(9.375% + var(--sit, 0) * 3.125%); background:#8fb4d9; transform-origin:50% 0; clip-path:polygon(0 0,100% 0,100% 80%,80% 80%,80% 100%,20% 100%,20% 80%,0 80%); }
+.leftLeg { left:33.75%; transform:rotate(var(--swing, 0deg)); }
+.rightLeg { left:51.25%; transform:rotate(calc(-1 * var(--swing, 0deg))); }
+.dot { position:absolute; bottom:-2px; right:-2px; width:4px; height:4px; border-radius:50%; background:var(--muted); opacity:.5; transition:background .2s,box-shadow .2s; }
+.stage[data-touching=true] .dot { background:var(--blue); opacity:1; box-shadow:0 0 0 4px #8da7ff22; }
+.secretProp { display:none; position:absolute; top:0; left:0; width:120%; height:100%; overflow:visible; pointer-events:none; }
+.pet[data-secret] .secretProp { display:block; }
+.pet[data-secret-side=left] .secretProp { left:auto; right:0; transform:scaleX(-1); }
+.redSwitch { transform-origin:79px 64px; animation:switch-reveal 650ms steps(5,end) both; }
+.switchArm { opacity:0; transform-origin:60px 46px; transform:rotate(38deg); transition:transform 450ms steps(4,end),opacity 80ms; }
+.switchCap { transition:transform 180ms steps(2,end); }
+.pet:is([data-secret=reach],[data-secret=press]) .switchArm { opacity:1; transform:rotate(0deg); }
+.pet:is([data-secret=reach],[data-secret=press]) .sprite { clip-path:polygon(0 0,100% 0,100% 68%,74% 68%,74% 100%,0 100%); }
+.pet:is([data-secret=reach],[data-secret=press])[data-secret-side=left] .sprite { clip-path:polygon(0 0,100% 0,100% 100%,26% 100%,26% 68%,0 68%); }
+.pet[data-secret=press] .switchArm { transform:rotate(12deg); transition-duration:180ms; }
+.pet[data-secret=press] .switchCap { transform:translateY(4px); }
+.switchSpark { opacity:0; }
+.pet[data-secret=press] .switchSpark { opacity:1; }
+@keyframes switch-reveal { from { opacity:0; transform:translateY(6px) scale(.2); } to { opacity:1; transform:translateY(0) scale(1); } }
+@media (width < 640px) {
+  .stage { top:-88px; height:88px; left:0; right:0; }
+  .pet { width:60px; height:48px; }
+}
