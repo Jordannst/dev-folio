@@ -45,7 +45,7 @@ export function Stage() {
       </div>
     </div>
     <div className="segments">
-      {designs.map((item, index) => <button key={item.id} type="button" aria-label={`Tampilkan ${item.name}`} aria-pressed={index === shown.current} onClick={() => show(index)}>
+      {designs.map((item, index) => <button key={item.id} type="button" aria-label={`Show ${item.name}`} aria-pressed={index === shown.current} onClick={() => show(index)}>
         <span className="fill" onAnimationEnd={() => show((index + 1) % designs.length)} />
       </button>)}
     </div>

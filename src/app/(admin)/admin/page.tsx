@@ -20,24 +20,32 @@ function notice({ activated, error, status }: Params) {
   if (error === "save") return `Gagal menyimpan pilihan${typeof status === "string" && /^\d{3}$/.test(status) ? ` (status ${status})` : ""}. Desain aktif tidak berubah.`;
 }
 
+// The login page is public, so it speaks the site's English; the catalog behind it stays Indonesian.
+const loginNotices: Record<string, string> = {
+  login: "Sign-in failed. Try again.",
+  denied: "This account doesn't have access.",
+  config: "Sign-in isn't configured yet.",
+};
+
 export default async function AdminPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
   const message = notice(params);
   const missing = missingAuthEnv();
   const signedIn = !missing.length && await verifySession((await cookies()).get(SESSION_COOKIE)?.value, process.env.SESSION_SECRET, process.env.ADMIN_GITHUB_ID);
-  if (!signedIn) return <main className="login">
+  const loginNotice = typeof params.error === "string" && Object.hasOwn(loginNotices, params.error) ? loginNotices[params.error] : undefined;
+  if (!signedIn) return <main className="login" lang="en">
     <section className="login-copy" aria-labelledby="login-title">
       <Fold />
       <p className="eyebrow">jordannst.dev / admin</p>
-      <h1 id="login-title">Katalog desain</h1>
-      <p className="lede">Halaman ini khusus Jordan. Masuk dengan GitHub untuk memilih desain yang dilihat pengunjung.</p>
-      {message && !(missing.length && params.error === "config") && <p className="notice alert" role="alert">{message}</p>}
+      <h1 id="login-title">Design catalog</h1>
+      <p className="lede">This page is for Jordan only. Sign in with GitHub to choose the design visitors see.</p>
+      {loginNotice && !(missing.length && params.error === "config") && <p className="notice alert" role="alert">{loginNotice}</p>}
       {missing.length ? <div className="notice alert" role="alert">
-        <h2>Login belum dikonfigurasi</h2>
-        <p>Env yang belum diisi:</p>
+        <h2>Sign-in isn't configured yet</h2>
+        <p>Missing environment variables:</p>
         <ul>{missing.map(name => <li key={name}><code>{name}</code></li>)}</ul>
       </div> : <LoginButton />}
-      <a className="home" href="/"><span aria-hidden="true">←</span>Kembali ke beranda</a>
+      <a className="home" href="/"><span aria-hidden="true">←</span>Back to home</a>
     </section>
     <Stage />
   </main>;
