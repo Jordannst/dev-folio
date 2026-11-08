@@ -4,6 +4,8 @@ import { missingAuthEnv } from "@/designs/admin-config";
 import { readActiveDesign } from "@/designs/edge-config";
 import { defaultDesign, designs, isDesignId } from "@/designs/registry";
 import { SESSION_COOKIE, verifySession } from "@/designs/session";
+import { LoginButton } from "./login-button";
+import { Stage } from "./stage";
 
 type Params = Record<string, string | string[] | undefined>;
 const nameOf = (id: string) => designs.find(design => design.id === id)?.name;
@@ -19,29 +21,52 @@ function notice({ activated, error, status }: Params) {
 }
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<Params> }) {
-  const message = notice(await searchParams);
+  const params = await searchParams;
+  const message = notice(params);
   const missing = missingAuthEnv();
   const signedIn = !missing.length && await verifySession((await cookies()).get(SESSION_COOKIE)?.value, process.env.SESSION_SECRET, process.env.ADMIN_GITHUB_ID);
+  if (!signedIn) return <main className="login">
+    <section className="login-copy" aria-labelledby="login-title">
+      <Fold />
+      <p className="eyebrow">jordannst.dev / admin</p>
+      <h1 id="login-title">Katalog desain</h1>
+      <p className="lede">Halaman ini khusus Jordan. Masuk dengan GitHub untuk memilih desain yang dilihat pengunjung.</p>
+      {message && !(missing.length && params.error === "config") && <p className="notice alert" role="alert">{message}</p>}
+      {missing.length ? <div className="notice alert" role="alert">
+        <h2>Login belum dikonfigurasi</h2>
+        <p>Env yang belum diisi:</p>
+        <ul>{missing.map(name => <li key={name}><code>{name}</code></li>)}</ul>
+      </div> : <LoginButton />}
+      <a className="home" href="/"><span aria-hidden="true">←</span>Kembali ke beranda</a>
+    </section>
+    <Stage />
+  </main>;
   return <main className="admin">
     <div className="admin-head">
       <h1>Katalog desain</h1>
-      {signedIn && <form action="/api/auth/logout" method="post"><button type="submit" className="button">Logout</button></form>}
+      <form action="/api/auth/logout" method="post"><button type="submit" className="button">Logout</button></form>
     </div>
     {message && <p className="notice" role="status">{message}</p>}
-    {missing.length ? <section className="notice">
-      <h2>Login belum dikonfigurasi</h2>
-      <p>Env yang belum diisi:</p>
-      <ul>{missing.map(name => <li key={name}><code>{name}</code></li>)}</ul>
-    </section> : signedIn ? <Catalog /> : <a className="button primary" href="/api/auth/login">Login dengan GitHub</a>}
+    <Catalog />
   </main>;
+}
+
+// The Fold mark from src/app/icon.svg; its two planes fold in on load.
+function Fold() {
+  return <svg className="fold" viewBox="0 0 64 64" width="56" height="56" aria-hidden="true">
+    <path className="fold-top" d="M39.4 4 19.6 15.5Q16.4 17.3 16.4 20.2V33L39.4 19.9Z" />
+    <path className="fold-bottom" d="m28.9 28.3 17.3 7.6q1.4.6 1.4 1.6v10.4q0 2.6-2.4 4.2L32.3 60V43.3L16.5 35.7Z" />
+  </svg>;
 }
 
 async function Catalog() {
   const active = await readActiveDesign();
   return <>
     {!active.ok && <p className="notice" role="status">Desain aktif tidak bisa dibaca; situs memakai default {nameOf(defaultDesign)}</p>}
-    <ul className="catalog">{designs.map(design => <li key={design.id} className="card">
-      <Image src={`/design-thumbnails/${design.id}.webp`} width={640} height={400} alt={`Tampilan ${design.name}`} sizes="(max-width: 639px) 100vw, 464px" />
+    <ul className="catalog">{designs.map((design, index) => <li key={design.id} className="card" style={{ "--i": index } as React.CSSProperties}>
+      <div className="thumb">
+        <Image src={`/design-thumbnails/${design.id}.webp`} width={640} height={400} alt={`Tampilan ${design.name}`} sizes="(max-width: 639px) 100vw, 464px" />
+      </div>
       <div className="card-body">
         <h2>{design.name}{active.id === design.id && <span className="badge">Aktif</span>}</h2>
         <p>{design.description}</p>
