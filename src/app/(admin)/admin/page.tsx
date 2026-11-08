@@ -4,6 +4,7 @@ import { missingAuthEnv } from "@/designs/admin-config";
 import { readActiveDesign } from "@/designs/edge-config";
 import { defaultDesign, designs, isDesignId } from "@/designs/registry";
 import { SESSION_COOKIE, verifySession } from "@/designs/session";
+import { ActivateButton } from "./activate-button";
 import { LoginButton } from "./login-button";
 import { Stage } from "./stage";
 
@@ -11,13 +12,15 @@ type Params = Record<string, string | string[] | undefined>;
 const nameOf = (id: string) => designs.find(design => design.id === id)?.name;
 
 // Only known values produce a message; anything else in the query is ignored.
-function notice({ activated, error, status }: Params) {
-  if (isDesignId(activated)) return `${nameOf(activated)} aktif. Perubahan menyebar dalam beberapa detik.`;
-  if (error === "login") return "Login gagal. Coba lagi.";
-  if (error === "denied") return "Akun ini tidak punya akses";
-  if (error === "config") return "Login belum dikonfigurasi";
-  if (error === "edge-config") return "Global Config (dulu Edge Config) belum terhubung ke project.";
-  if (error === "save") return `Gagal menyimpan pilihan${typeof status === "string" && /^\d{3}$/.test(status) ? ` (status ${status})` : ""}. Desain aktif tidak berubah.`;
+function notice({ activated, error, status }: Params): { tone: "ok" | "error"; text: string } | undefined {
+  if (isDesignId(activated)) return { tone: "ok", text: `${nameOf(activated)} sekarang tayang. Pengunjung melihatnya dalam beberapa detik.` };
+  const text = error === "login" ? "Login gagal. Coba lagi."
+    : error === "denied" ? "Akun ini tidak punya akses."
+    : error === "config" ? "Login belum dikonfigurasi."
+    : error === "edge-config" ? "Global Config (dulu Edge Config) belum terhubung ke project."
+    : error === "save" ? `Gagal menyimpan pilihan${typeof status === "string" && /^\d{3}$/.test(status) ? ` (status ${status})` : ""}. Desain aktif tidak berubah.`
+    : undefined;
+  return text ? { tone: "error", text } : undefined;
 }
 
 // The login page is public, so it speaks the site's English; the catalog behind it stays Indonesian.
@@ -50,11 +53,20 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     <Stage />
   </main>;
   return <main className="admin">
-    <div className="admin-head">
-      <h1>Katalog desain</h1>
-      <form action="/api/auth/logout" method="post"><button type="submit" className="button">Logout</button></form>
-    </div>
-    {message && <p className="notice" role="status">{message}</p>}
+    <header className="admin-head">
+      <div className="brand">
+        <Fold />
+        <div>
+          <p className="eyebrow">jordannst.dev / admin</p>
+          <h1>Katalog desain</h1>
+        </div>
+      </div>
+      <div className="head-actions">
+        <a className="button ghost" href="/"><span className="back" aria-hidden="true">←</span>Kembali ke beranda</a>
+        <form action="/api/auth/logout" method="post"><button type="submit" className="button ghost">Logout</button></form>
+      </div>
+    </header>
+    {message && <p className={`notice ${message.tone}`} role={message.tone === "error" ? "alert" : "status"}>{message.text}</p>}
     <Catalog />
   </main>;
 }
@@ -68,24 +80,39 @@ function Fold() {
 }
 
 async function Catalog() {
-  const active = await readActiveDesign();
+  const active = await readActiveDesign({ consistentRead: true });
+  const live = designs.find(design => design.id === active.id)!;
+  const others = designs.filter(design => design.id !== active.id);
   return <>
-    {!active.ok && <p className="notice" role="status">Desain aktif tidak bisa dibaca; situs memakai default {nameOf(defaultDesign)}</p>}
-    <ul className="catalog">{designs.map((design, index) => <li key={design.id} className="card" style={{ "--i": index } as React.CSSProperties}>
-      <div className="thumb">
-        <Image src={`/design-thumbnails/${design.id}.webp`} width={640} height={400} alt={`Tampilan ${design.name}`} sizes="(max-width: 639px) 100vw, 464px" />
-      </div>
-      <div className="card-body">
-        <h2>{design.name}{active.id === design.id && <span className="badge">Aktif</span>}</h2>
-        <p>{design.description}</p>
-        <div className="actions">
-          <a className="button" href={`/admin/preview/${design.id}`} target="_blank" rel="noopener">Preview</a>
-          <form action="/api/admin/activate" method="post">
-            <input type="hidden" name="id" value={design.id} />
-            <button type="submit" className="button primary" disabled={active.id === design.id}>Aktifkan</button>
-          </form>
+    {!active.ok && <p className="notice warn" role="status">Desain aktif tidak bisa dibaca; situs memakai default {nameOf(defaultDesign)}.</p>}
+    <section className="live" aria-labelledby="live-name">
+      <div className="frame">
+        <div className="frame-bar" aria-hidden="true"><span className="dots"><i /><i /><i /></span><span className="url">jordannst.dev</span></div>
+        <div className="screen">
+          <Image src={`/design-thumbnails/${live.id}.webp`} width={640} height={400} alt={`Tampilan ${live.name}`} sizes="(max-width: 719px) 100vw, 560px" priority data-state="current" />
         </div>
       </div>
-    </li>)}</ul>
+      <div className="live-body">
+        <p className="live-label"><span className="pulse" aria-hidden="true" />Sedang tayang</p>
+        <h2 id="live-name">{live.name}</h2>
+        <p>{live.description}</p>
+      </div>
+    </section>
+    <section className="others" aria-labelledby="others-title">
+      <h2 id="others-title" className="section-title">Desain lain <span className="count">{others.length}</span></h2>
+      {others.length ? <ul className="catalog">{others.map((design, index) => <li key={design.id} className="card" style={{ "--i": index } as React.CSSProperties}>
+        <div className="thumb">
+          <Image src={`/design-thumbnails/${design.id}.webp`} width={640} height={400} alt={`Tampilan ${design.name}`} sizes="(max-width: 639px) 100vw, 464px" />
+        </div>
+        <div className="card-body">
+          <h3>{design.name}</h3>
+          <p>{design.description}</p>
+          <div className="actions">
+            <a className="button ghost" href={`/admin/preview/${design.id}`} target="_blank" rel="noopener">Preview<span aria-hidden="true">↗</span><span className="sr-only"> (tab baru)</span></a>
+            <ActivateButton id={design.id} name={design.name} />
+          </div>
+        </div>
+      </li>)}</ul> : <p className="empty">Belum ada desain lain. Desain baru masuk lewat kode.</p>}
+    </section>
   </>;
 }

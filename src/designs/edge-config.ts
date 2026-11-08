@@ -5,10 +5,11 @@ import { defaultDesign, resolveDesign, type DesignId } from "./registry.ts";
 export const edgeConfigConnection = (env: Record<string, string | undefined> = process.env) => env.GLOBAL_CONFIG || env.EDGE_CONFIG;
 
 // ok=false means the store was unreachable or unset; callers still get a usable design.
-export async function readActiveDesign(): Promise<{ id: DesignId; ok: boolean }> {
+// consistentRead skips the cache (slower); the admin uses it so the catalog shows a change right after Activate.
+export async function readActiveDesign(options?: { consistentRead?: boolean }): Promise<{ id: DesignId; ok: boolean }> {
   if (!edgeConfigConnection()) return { id: defaultDesign, ok: false };
   try {
-    return { id: resolveDesign(await get("activeDesign")), ok: true };
+    return { id: resolveDesign(await get("activeDesign", options)), ok: true };
   } catch {
     return { id: defaultDesign, ok: false };
   }
