@@ -4,8 +4,8 @@ import { missingAuthEnv } from "@/designs/admin-config";
 import { readActiveDesign } from "@/designs/edge-config";
 import { defaultDesign, designs, isDesignId } from "@/designs/registry";
 import { SESSION_COOKIE, verifySession } from "@/designs/session";
-import { Deck } from "./deck";
 import { LoginButton } from "./login-button";
+import { Stage } from "./stage";
 
 type Params = Record<string, string | string[] | undefined>;
 const nameOf = (id: string) => designs.find(design => design.id === id)?.name;
@@ -26,21 +26,20 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const missing = missingAuthEnv();
   const signedIn = !missing.length && await verifySession((await cookies()).get(SESSION_COOKIE)?.value, process.env.SESSION_SECRET, process.env.ADMIN_GITHUB_ID);
   if (!signedIn) return <main className="login">
-    <div className="login-stage">
-      <Deck ids={designs.map(design => design.id)} />
-      <section className="login-card" aria-labelledby="login-title">
-        <Fold />
-        <p className="eyebrow">jordannst.dev</p>
-        <h1 id="login-title">Katalog desain</h1>
-        <p className="lede">Masuk dengan GitHub untuk memilih desain yang dilihat pengunjung.</p>
-        {message && !(missing.length && params.error === "config") && <p className="notice alert" role="alert">{message}</p>}
-        {missing.length ? <div className="notice alert" role="alert">
-          <h2>Login belum dikonfigurasi</h2>
-          <p>Env yang belum diisi:</p>
-          <ul>{missing.map(name => <li key={name}><code>{name}</code></li>)}</ul>
-        </div> : <LoginButton />}
-      </section>
-    </div>
+    <section className="login-copy" aria-labelledby="login-title">
+      <Fold />
+      <p className="eyebrow">jordannst.dev / admin</p>
+      <h1 id="login-title">Katalog desain</h1>
+      <p className="lede">Halaman ini khusus Jordan. Masuk dengan GitHub untuk memilih desain yang dilihat pengunjung.</p>
+      {message && !(missing.length && params.error === "config") && <p className="notice alert" role="alert">{message}</p>}
+      {missing.length ? <div className="notice alert" role="alert">
+        <h2>Login belum dikonfigurasi</h2>
+        <p>Env yang belum diisi:</p>
+        <ul>{missing.map(name => <li key={name}><code>{name}</code></li>)}</ul>
+      </div> : <LoginButton />}
+      <a className="home" href="/"><span aria-hidden="true">←</span>Kembali ke beranda</a>
+    </section>
+    <Stage />
   </main>;
   return <main className="admin">
     <div className="admin-head">

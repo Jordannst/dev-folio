@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+const greet = () => dispatchEvent(new Event("pogo:wave"));
+
 export function LoginButton() {
   const [pending, setPending] = useState(false);
   // Back from GitHub restores this page from bfcache; drop the pending state then.
@@ -15,6 +17,8 @@ export function LoginButton() {
     className="github"
     href="/api/auth/login"
     aria-busy={pending || undefined}
+    onPointerEnter={greet}
+    onFocus={greet}
     onClick={event => {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button) return;
       if (pending) event.preventDefault();
